@@ -47,6 +47,6 @@ public class Token {
 	
 	@Override
 	public String toString() {
-		return Integer.toString(lin) + ":" + Integer.toString(col) + "\t" + type.name() + "\t" + value;
+		return Integer.toString(lin) + ":" + Integer.toString(col) + "\t" + type.name() + (value != null ? "\t" + value : "");
 	}
 }
