@@ -296,6 +296,7 @@ public class LexicalParser {
 				
 			case STRING_LITERAL:
 				if (escaped) {
+					// TODO suportar escape sequences
 					buffer.append(c);
 					escaped = false;
 				} else {
@@ -318,6 +319,7 @@ public class LexicalParser {
 
 			case CHAR_CONSTANT:
 				if (escaped) {
+					// TODO suportar escape sequences
 					buffer.append(c);
 					escaped = false;
 				} else {
