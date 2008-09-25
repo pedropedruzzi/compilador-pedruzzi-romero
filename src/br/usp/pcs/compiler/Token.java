@@ -1,5 +1,8 @@
 package br.usp.pcs.compiler;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Token {
 
 	TokenType type;
@@ -22,7 +25,7 @@ public class Token {
 	}
 
 	public enum TokenType {
-		IDENTIFIER, OPERATOR, STRING_LITERAL, CHAR_LITERAL,
+		IDENTIFIER, STRING_LITERAL, CHAR_LITERAL,
 		
 		ARROW, DECREMENT, COMPOUND_ASSIGNMENT_MINUS,
 		COMPOUND_ASSIGNMENT_PLUS, INCREMENT, LOGICAL_OR, LOGICAL_AND,
@@ -37,12 +40,35 @@ public class Token {
 		COMMA, SEMICOLON, TILDE, QUESTION_MARK, COLON, DOT,
 		ELLIPSIS,
 		
-		AUTO, BREAK, CASE, CHAR, CONST, CONTINUE,
-		DEFAULT, DO, DOUBLE, ELSE, ENUM, EXTERN,
-		FLOAT, FOR, GOTO, IF, INT, LONG, REGISTER,
-		RETURN, SHORT, SIGNED, SIZEOF, STATIC, STRUCT,
-		SWITCH, TYPEDEF, UNION, UNSIGNED, VOID,
-		VOLATILE, WHILE
+		AUTO(true), BREAK(true), CASE(true), CHAR(true), CONST(true), CONTINUE(true),
+		DEFAULT(true), DO(true), DOUBLE(true), ELSE(true), ENUM(true), EXTERN(true),
+		FLOAT(true), FOR(true), GOTO(true), IF(true), INT(true), LONG(true), REGISTER(true),
+		RETURN(true), SHORT(true), SIGNED(true), SIZEOF(true), STATIC(true), STRUCT(true),
+		SWITCH(true), TYPEDEF(true), UNION(true), UNSIGNED(true), VOID(true),
+		VOLATILE(true), WHILE(true);
+		
+		private static Set<String> keywords;
+		
+		TokenType() {
+			
+		}
+		
+		TokenType(boolean keyword) {
+			if (keyword) addKeyword(name().toLowerCase());
+		}
+		
+		private void addKeyword(String keyword) {
+			if (keywords == null) keywords = new HashSet<String>();
+			keywords.add(keyword);
+		}
+
+		public static boolean isKeyword(String name) {
+			return keywords.contains(name);
+		}
+
+		public static TokenType getKeyword(String name) {
+			return TokenType.valueOf(name.toUpperCase());
+		}
 	}
 	
 	@Override

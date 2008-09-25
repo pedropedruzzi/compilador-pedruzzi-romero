@@ -5,30 +5,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import br.usp.pcs.compiler.Token.TokenType;
 
 public class LexicalParser {
-	
-	private static enum Keyword {
-		AUTO, BREAK, CASE, CHAR, CONST, CONTINUE,
-		DEFAULT, DO, DOUBLE, ELSE, ENUM, EXTERN,
-		FLOAT, FOR, GOTO, IF, INT, LONG, REGISTER,
-		RETURN, SHORT, SIGNED, SIZEOF, STATIC, STRUCT,
-		SWITCH, TYPEDEF, UNION, UNSIGNED, VOID,
-		VOLATILE, WHILE
-	}
-	
-	
-	private static final Map<String, Keyword> keywordMap;
-	static {
-		keywordMap = new HashMap<String, Keyword>();
-		for (Keyword k : Keyword.values()) keywordMap.put(k.name().toLowerCase(), k);
-	}
 	
 	private static final String SINGLE_OP = "{}[](),;~?:";
 	private static final String OPS = "{}[]()+-*/%.,;<>=&|~!^?:#";
@@ -109,7 +91,7 @@ public class LexicalParser {
 							break;
 						}
 						if (type == null) error("assertion error! c = " + c);
-						token = operatorToken(type);
+						token = singleToken(type);
 					} else if (isOperatorChar(c)) {
 						state = LexicalState.OPERATOR1;
 						opTmpChar = c;
@@ -236,7 +218,7 @@ public class LexicalParser {
 
 				if (type != null) {
 					// fechou um token!
-					token = operatorToken(type);
+					token = singleToken(type);
 					state = LexicalState.INITIAL;
 				} else if (state == LexicalState.OPERATOR1) {
 					state = LexicalState.OPERATOR2;
@@ -269,7 +251,7 @@ public class LexicalParser {
 				}
 				
 				if (type != null) {
-					token = operatorToken(type);
+					token = singleToken(type);
 					state = LexicalState.INITIAL;
 				} else {
 					error("assertion error!");
@@ -282,11 +264,10 @@ public class LexicalParser {
 					buffer.append(c);
 				} else {
 					String identifier = buffer.toString();
-					Keyword keyword = keywordMap.get(identifier);
-					if (keyword == null)
-						token = identifierToken(identifier);
+					if (TokenType.isKeyword(identifier))
+						token = singleToken(TokenType.getKeyword(identifier));
 					else
-						token = keywordToken(keyword);
+						token = identifierToken(identifier);
 					
 					buffer.setLength(0);
 					state = LexicalState.INITIAL;
@@ -373,13 +354,6 @@ public class LexicalParser {
 		throw new RuntimeException("Lex error on line " + tokenLin + " column " + tokenCol + ": " + text);
 	}
 
-	private Token keywordToken(Keyword keyword) {
-		Token t = new Token(TokenType.valueOf(keyword.name()));
-		t.lin = tokenLin;
-		t.col = tokenCol;
-		return t;
-	}
-
 	private Token identifierToken(String name) {
 		Token t = new Token(TokenType.IDENTIFIER, name);
 		t.lin = tokenLin;
@@ -405,7 +379,7 @@ public class LexicalParser {
 		return Character.isLetterOrDigit(c) || c == '_';
 	}
 	
-	private Token operatorToken(TokenType type) {
+	private Token singleToken(TokenType type) {
 		Token t = new Token(type);
 		t.lin = tokenLin;
 		t.col = tokenCol;
@@ -475,6 +449,10 @@ public class LexicalParser {
 		}
 	}
 	
-	enum LexicalState { INITIAL, OPERATOR1, END, IDENTIFIER, STRING_LITERAL, CHAR_CONSTANT, NUMERIC_CONSTANT, OPERATOR2, LINE_COMMENT, COMMENT, COMMENT2 }
+	enum LexicalState { 
+		INITIAL, OPERATOR1, END, IDENTIFIER, STRING_LITERAL, 
+		CHAR_CONSTANT, NUMERIC_CONSTANT, OPERATOR2, LINE_COMMENT, 
+		COMMENT, COMMENT2
+	}
 	
 }
