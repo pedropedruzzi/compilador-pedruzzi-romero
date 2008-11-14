@@ -4,20 +4,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import br.usp.pcs.compiler.Token.TokenType;
 
-public class LexicalParser {
+public class LexicalParser implements Lex {
 	
-	private static final String SINGLE_OP = "{}[](),;~?:";
+	private static final String SINGLE_OP = "{}[](),;~-+*%^.";
 	private static final String OPS = "{}[]()+-*/%.,;<>=&|~!^?:#";
-	private static final Set<String> OPERATORS = new HashSet<String>(Arrays
-			.asList("->", "++", "--", "<<", ">>", "<=", ">=", "==", "!=", "&&",
-					"||", "*=", "/=", "%=", "+=", "-=", "<<=", ">>=", "&=",
-					"^=", "|=", "##", "..."));
 	
 	
 	
@@ -28,19 +21,37 @@ public class LexicalParser {
 	private int col = 0;
 	private int tokenLin;
 	private int tokenCol;
+	
+	private Token last;
 
 	public LexicalParser(String filename) throws FileNotFoundException {
 		input = new FileReader(filename);
 	}
 	
+	public void giveBack(Token token) {
+		if (last != null) throw new RuntimeException("Can't give more than one token back.");
+		last = token;
+	}
+	
 	public Token nextToken() {
-		Token token = null;
+		if (last == null) parseNextToken();
+		Token token = last;
+		last = null;
+		return token;
+	}
+	
+	public boolean hasToken() {
+		if (last == null) parseNextToken();
+		return last != null;
+	}
+	
+	private void parseNextToken() {
 		boolean escaped = false;
 		
 		char opTmpChar = '\0';
 		
-		while (token == null) {
-			if (isEOF()) return null;
+		while (last == null) {
+			if (isEOF()) return;
 			char c = nextChar();
 			
 			// TODO:
@@ -83,15 +94,28 @@ public class LexicalParser {
 						case '~':
 							type = TokenType.TILDE;
 							break;
-						case '?':
-							type = TokenType.QUESTION_MARK;
+						case '-':
+							type = TokenType.MINUS;
 							break;
-						case ':':
-							type = TokenType.COLON;
+						case '+':
+							type = TokenType.PLUS;
+							break;
+						case '*':
+							type = TokenType.MULTIPLICATION;
+							break;
+						case '%':
+							type = TokenType.MODULUS;
+							break;
+						case '^':
+							type = TokenType.BITWISE_XOR;
+							break;
+						case '.':
+							type = TokenType.DOT;
 							break;
 						}
-						if (type == null) error("assertion error! c = " + c);
-						token = singleToken(type);
+
+						if (type == null) error("assertment error! c = " + c);
+						last = singleToken(type);
 					} else if (isOperatorChar(c)) {
 						state = LexicalState.OPERATOR1;
 						opTmpChar = c;
@@ -115,26 +139,8 @@ public class LexicalParser {
 			{
 				TokenType type = null;
 				switch (opTmpChar) {
-				case '-':
-					if (c == '>') type = TokenType.ARROW;
-					else if (c == '-') type = TokenType.DECREMENT;
-					else if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_MINUS;
-					else {
-						type = TokenType.MINUS;
-						giveBack(c);
-					}
-					break;
-				case '+':
-					if (c == '+') type = TokenType.INCREMENT;
-					else if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_PLUS;
-					else {
-						type = TokenType.PLUS;
-						giveBack(c);
-					}
-					break;
 				case '&':
 					if (c == '&') type = TokenType.LOGICAL_AND;
-					else if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_AND;
 					else {
 						type = TokenType.BITWISE_AND;
 						giveBack(c);
@@ -142,7 +148,6 @@ public class LexicalParser {
 					break;
 				case '|':
 					if (c == '|') type = TokenType.LOGICAL_OR;
-					else if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_OR;
 					else {
 						type = TokenType.BITWISE_OR;
 						giveBack(c);
@@ -162,99 +167,37 @@ public class LexicalParser {
 						giveBack(c);
 					}
 					break;
-				case '*':
-					if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_MULTIPLICATION;
-					else {
-						type = TokenType.MULTIPLICATION;
-						giveBack(c);
-					}
-					break;
 				case '/':
-					if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_DIVISION;
-					else if (c == '/') {
+					if (c == '/') {
 						state = LexicalState.LINE_COMMENT;
 					} else if (c == '*') {
 						state = LexicalState.COMMENT;
-					}
-					else {
+					} else {
 						type = TokenType.DIVISION;
-						giveBack(c);
-					}
-					break;
-				case '%':
-					if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_MODULUS;
-					else {
-						type = TokenType.MODULUS;
-						giveBack(c);
-					}
-					break;
-				case '^':
-					if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_NOT;
-					else {
-						type = TokenType.BITWISE_XOR;
 						giveBack(c);
 					}
 					break;
 				case '>':
 					if (c == '=') type = TokenType.GREATER_OR_EQUAL;
-					else if (c != '>') {
+					else if (c == '>') type = TokenType.SHIFT_RIGHT;
+					else {
 						type = TokenType.GREATER;
 						giveBack(c);
 					}
 					break;
 				case '<':
 					if (c == '=') type = TokenType.LESS_OR_EQUAL;
-					else if (c != '<') {
+					else if (c == '<') type = TokenType.SHIFT_LEFT;
+					else {
 						type = TokenType.LESS;
 						giveBack(c);
 					}
 					break;
-				case '.':
-					if (c != '.') {
-						type = TokenType.DOT;
-						giveBack(c);
-					}
-				}
-
-				if (type != null) {
-					// fechou um token!
-					token = singleToken(type);
-					state = LexicalState.INITIAL;
-				} else if (state == LexicalState.OPERATOR1) {
-					state = LexicalState.OPERATOR2;
-				}
-			}
-			break;
-
-			case OPERATOR2:
-			{
-				TokenType type = null;
-				switch (opTmpChar) {
-					case '>':
-						if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_SHIFT_RIGHT;
-						else {
-							type = TokenType.SHIFT_RIGHT;
-							giveBack(c);
-						}
-						break;
-					case '<':
-						if (c == '=') type = TokenType.COMPOUND_ASSIGNMENT_SHIFT_LEFT;
-						else {
-							type = TokenType.SHIFT_LEFT;
-							giveBack(c);
-						}
-						break;
-					case '.':
-						if (c == '.') type = TokenType.ELLIPSIS;
-						else error("invalid token");
-						break;
 				}
 				
 				if (type != null) {
-					token = singleToken(type);
+					last = singleToken(type);
 					state = LexicalState.INITIAL;
-				} else {
-					error("assertion error!");
 				}
 			}
 			break;
@@ -265,9 +208,9 @@ public class LexicalParser {
 				} else {
 					String identifier = buffer.toString();
 					if (TokenType.isKeyword(identifier))
-						token = singleToken(TokenType.getKeyword(identifier));
+						last = singleToken(TokenType.getKeyword(identifier));
 					else
-						token = identifierToken(identifier);
+						last = identifierToken(identifier);
 					
 					buffer.setLength(0);
 					state = LexicalState.INITIAL;
@@ -287,7 +230,7 @@ public class LexicalParser {
 						if (c != '"') {
 							buffer.append(c);
 						} else {
-							token = stringLiteralToken(buffer.toString()); 
+							last = stringLiteralToken(buffer.toString()); 
 							
 							
 
@@ -314,7 +257,7 @@ public class LexicalParser {
 							if (ch.length() != 1) {
 								error("invalid character constant: " + ch);
 							}
-							token = charLiteralToken(ch.charAt(0));
+							last = charLiteralToken(ch.charAt(0));
 							
 							buffer.setLength(0);
 							state = LexicalState.INITIAL;
@@ -324,9 +267,15 @@ public class LexicalParser {
 				break;
 				
 			case NUMERIC_CONSTANT:
-				// TODO
-				buffer.setLength(0);
-				state = LexicalState.INITIAL;
+				if (Character.isDigit(c)) {
+					buffer.append(c);
+				} else {
+					last = integerLiteralToken(Integer.parseInt(buffer.toString()));
+
+					buffer.setLength(0);
+					state = LexicalState.INITIAL;
+					giveBack(c);
+				}
 				break;
 				
 			case COMMENT:
@@ -342,8 +291,6 @@ public class LexicalParser {
 				if (c == 0x0a || c == 0x0d) state = LexicalState.INITIAL; 
 			}
 		}
-		
-		return token;
 	}
 
 	/*
@@ -356,22 +303,29 @@ public class LexicalParser {
 
 	private Token identifierToken(String name) {
 		Token t = new Token(TokenType.IDENTIFIER, name);
-		t.lin = tokenLin;
-		t.col = tokenCol;
+		t.setLin(tokenLin);
+		t.setCol(tokenCol);
 		return t;
 	}
 
 	private Token stringLiteralToken(String string) {
 		Token t = new Token(TokenType.STRING_LITERAL, string);
-		t.lin = tokenLin;
-		t.col = tokenCol;
+		t.setLin(tokenLin);
+		t.setCol(tokenCol);
 		return t;
 	}
 
 	private Token charLiteralToken(char c) {
 		Token t = new Token(TokenType.CHAR_LITERAL, c);
-		t.lin = tokenLin;
-		t.col = tokenCol;
+		t.setLin(tokenLin);
+		t.setCol(tokenCol);
+		return t;
+	}
+
+	private Token integerLiteralToken(int i) {
+		Token t = new Token(TokenType.INTEGER_LITERAL, i);
+		t.setLin(tokenLin);
+		t.setCol(tokenCol);
 		return t;
 	}
 
@@ -381,8 +335,8 @@ public class LexicalParser {
 	
 	private Token singleToken(TokenType type) {
 		Token t = new Token(type);
-		t.lin = tokenLin;
-		t.col = tokenCol;
+		t.setLin(tokenLin);
+		t.setCol(tokenCol);
 		return t;
 	}
 

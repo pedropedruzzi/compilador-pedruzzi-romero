@@ -5,10 +5,10 @@ import java.util.Set;
 
 public class Token {
 
-	TokenType type;
-	Object value;
-	int lin;
-	int col;
+	private TokenType type;
+	private Object value;
+	private int lin;
+	private int col;
 	
 	public Token() {
 		
@@ -25,36 +25,39 @@ public class Token {
 	}
 
 	public enum TokenType {
-		IDENTIFIER, STRING_LITERAL, CHAR_LITERAL,
+		IDENTIFIER("id"), STRING_LITERAL, CHAR_LITERAL, INTEGER_LITERAL("num"),
 		
-		ARROW, DECREMENT, COMPOUND_ASSIGNMENT_MINUS,
-		COMPOUND_ASSIGNMENT_PLUS, INCREMENT, LOGICAL_OR, LOGICAL_AND,
-		COMPOUND_ASSIGNMENT_AND, COMPOUND_ASSIGNMENT_OR, NOT_EQUAL, EQUAL,
-		COMPOUND_ASSIGNMENT_MULTIPLICATION, COMPOUND_ASSIGNMENT_DIVISION,
-		COMPOUND_ASSIGNMENT_MODULUS, COMPOUND_ASSIGNMENT_NOT, GREATER_OR_EQUAL,
-		LESS_OR_EQUAL, COMPOUND_ASSIGNMENT_SHIFT_RIGHT,
-		COMPOUND_ASSIGNMENT_SHIFT_LEFT, MINUS, PLUS, BITWISE_AND, BITWISE_OR,
-		LOGICAL_NOT, ASSIGNMENT, MULTIPLICATION, SHIFT_LEFT, LESS, SHIFT_RIGHT,
-		GREATER, BITWISE_XOR, MODULUS, DIVISION, BRACE_OPEN, BRACE_CLOSE,
-		SUBSCRIPT_OPEN, SUBSCRIPT_CLOSE, PARENTHESES_OPEN, PARENTHESES_CLOSE,
-		COMMA, SEMICOLON, TILDE, QUESTION_MARK, COLON, DOT,
-		ELLIPSIS,
+		LOGICAL_OR("||"), LOGICAL_AND("&&"),
+		NOT_EQUAL("!="), EQUAL("=="),
+		GREATER_OR_EQUAL(">="),
+		LESS_OR_EQUAL("<="),
+		MINUS("-"), PLUS("+"), BITWISE_AND("&"), BITWISE_OR("|"),
+		LOGICAL_NOT("!"), ASSIGNMENT("="), MULTIPLICATION("*"), SHIFT_LEFT("<<"), LESS("<"), SHIFT_RIGHT(">>"),
+		GREATER(">"), BITWISE_XOR("^"), MODULUS("%"), DIVISION("/"), BRACE_OPEN("{"), BRACE_CLOSE("}"),
+		SUBSCRIPT_OPEN("["), SUBSCRIPT_CLOSE("]"), PARENTHESES_OPEN("("), PARENTHESES_CLOSE(")"),
+		COMMA(","), SEMICOLON(";"), TILDE("~"), DOT("."),
 		
-		AUTO(true), BREAK(true), CASE(true), CHAR(true), CONST(true), CONTINUE(true),
-		DEFAULT(true), DO(true), DOUBLE(true), ELSE(true), ENUM(true), EXTERN(true),
-		FLOAT(true), FOR(true), GOTO(true), IF(true), INT(true), LONG(true), REGISTER(true),
-		RETURN(true), SHORT(true), SIGNED(true), SIZEOF(true), STATIC(true), STRUCT(true),
-		SWITCH(true), TYPEDEF(true), UNION(true), UNSIGNED(true), VOID(true),
-		VOLATILE(true), WHILE(true);
+		CHAR(true), CONST(true), CONTINUE(true),
+		ELSE(true),
+		FOR(true), IF(true), INT(true), 
+		RETURN(true), TYPE(true),
+		VOID(true),
+		WHILE(true);
 		
 		private static Set<String> keywords;
+		private String id;
 		
 		TokenType() {
-			
+			this(false);
+		}
+		
+		TokenType(String id) {
+			this.id = id;
 		}
 		
 		TokenType(boolean keyword) {
-			if (keyword) addKeyword(name().toLowerCase());
+			this.id = name().toLowerCase();
+			if (keyword) addKeyword(id);
 		}
 		
 		private void addKeyword(String keyword) {
@@ -69,10 +72,50 @@ public class Token {
 		public static TokenType getKeyword(String name) {
 			return TokenType.valueOf(name.toUpperCase());
 		}
+		
+		public static TokenType getById(String id) {
+			for (TokenType tt : values()) {
+				if (id.equals(tt.id)) return tt;
+			}
+			
+			return null;
+		}
 	}
 	
 	@Override
 	public String toString() {
 		return Integer.toString(lin) + ":" + Integer.toString(col) + "\t" + type.name() + (value != null ? "\t" + value : "");
+	}
+
+	public TokenType getType() {
+		return type;
+	}
+
+	public void setType(TokenType type) {
+		this.type = type;
+	}
+
+	public Object getValue() {
+		return value;
+	}
+
+	public void setValue(Object value) {
+		this.value = value;
+	}
+
+	public int getLin() {
+		return lin;
+	}
+
+	public void setLin(int lin) {
+		this.lin = lin;
+	}
+
+	public int getCol() {
+		return col;
+	}
+
+	public void setCol(int col) {
+		this.col = col;
 	}
 }
