@@ -1,5 +1,6 @@
 package br.usp.pcs.compiler.submachine;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +14,7 @@ public class SubMachineCreator implements SubMachineInterpreter {
 	private Map<String, SubMachine> submachines = new HashMap<String, SubMachine>();
 	private SubMachine current;
 	private int currentState;
-	private HashMap<TokenType, Transition> transitions;
+	private Map<TokenType, Transition> transitions;
 	private Map<String, Set<String>> first;
 
 	public SubMachineCreator(Map<String, Set<String>> firstMap) {
@@ -26,6 +27,7 @@ public class SubMachineCreator implements SubMachineInterpreter {
 		if (main == null) main = current;
 		assert current.transitions == null;
 		current.transitions = new HashMap<Integer, Map<TokenType,Transition>>();
+		current.finalStates = new HashSet<Integer>();
 	}
 	
 	private SubMachine getOrCreateSubMachine(String id) {
@@ -44,6 +46,15 @@ public class SubMachineCreator implements SubMachineInterpreter {
 		assert !current.transitions.containsKey(num) : "duplicated state definition";
 		transitions = new HashMap<TokenType, Transition>();
 		current.transitions.put(num, transitions);
+	}
+
+	@Override
+	public void finalState(int num) {
+		currentState = num;
+		assert !current.transitions.containsKey(num) : "duplicated state definition";
+		transitions = new HashMap<TokenType, Transition>();
+		current.transitions.put(num, transitions);
+		current.finalStates.add(num);
 	}
 
 	@Override

@@ -5,6 +5,8 @@ public interface SubMachineInterpreter {
 
 	public void state(int num);
 
+	public void finalState(int i);
+
 	public void transition(String tokenType, int nextState);
 
 	public void subMachineCall(String subMachineId, int nextState);

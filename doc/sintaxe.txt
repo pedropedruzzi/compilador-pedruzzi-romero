@@ -1,0 +1,70 @@
+Sintaxe da linguagem em Wirth
+
+
+programa = { declaracao_variavel | declaracao_funcao | declaracao_tipo | funcao } .
+declaracao_variavel = "var" tipo id [ "=" ( constante | string ) ] { "," id [ "=" ( constante | string ) ] } ";" .
+tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
+prototipo_funcao = "func" ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" .
+declaracao_funcao = prototipo_funcao ";" .
+declaracao_tipo = "type" id "{" tipo id ";" { tipo id ";" } "}" ";" .
+funcao = prototipo_funcao bloco .
+bloco = "{" { declaracao_variavel } { comando } "}" .
+comando = bloco | expressao ";" | if | while | for | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+if = "if" "(" expressao ")" comando [ "else" comando ] .
+for = "for" "(" expressao ";" expressao ";" expressao ")" comando .
+while = "while" "(" expressao ")" comando .
+
+
+
+
+Expressão:
+==========
+
+chamada_funcao = id "(" [ expressao { "," expressao } ] ")" .
+lvalue = id { "[" expressao "]" | "." id } .
+
+expressao = { lvalue "=" } e1 .
+e1 = e2 { op2 e2 } .
+e2 = { op1 } e3 .
+e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
+
+op1 = "!" | "~" | "-" .
+op2 = "+" | "-" | "*" | "/" | "%" | "==" | "<" | "<=" | ">" | ">=" | "&" | "&&" | "|" | "||" | "^" | ">>" | "<<" .
+
+final:
+expressao = { id { "[" expressao "]" | "." id } "=" } { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
+
+
+
+
+Simplificando
+=============
+
+1) substitui if, for e while em comando:
+
+bloco = "{" { declaracao_variavel } { comando } "}" .
+comando = bloco | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+
+2) elimina bloco
+
+funcao = prototipo_funcao "{" { declaracao_variavel } { comando } "}" .
+comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+
+3) elimina prototipo_funcao, e junta declaracao_funcao com funcao
+
+func = "func" ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
+
+Resultado)
+
+programa = { declaracao_variavel | declaracao_tipo | func } .
+declaracao_variavel = "var" tipo id [ "=" ( constante | string ) ] { "," id [ "=" ( constante | string ) ] } ";" .
+tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
+declaracao_tipo = "type" id "{" tipo id ";" { tipo id ";" } "}" ";" .
+func = "func" ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
+comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+expressao = { id { "[" expressao "]" | "." id } "=" } { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
+
+
+
+inicializador deve poder ser expressao (constante) ??
+
