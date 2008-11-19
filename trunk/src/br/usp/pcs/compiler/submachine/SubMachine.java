@@ -1,5 +1,6 @@
 package br.usp.pcs.compiler.submachine;
 import java.util.Map;
+import java.util.Set;
 
 import br.usp.pcs.compiler.Lex;
 import br.usp.pcs.compiler.Token;
@@ -13,6 +14,7 @@ public class SubMachine {
 	private String id;
 	
 	Map<Integer, Map<TokenType, Transition>> transitions;
+	Set<Integer> finalStates;
 	
 	public SubMachine(String id) {
 		this.id = id;
@@ -26,7 +28,7 @@ public class SubMachine {
 			Transition t = transitions.get(state).get(token.getType());
 			if (t == null) {
 				lex.giveBack(token);
-				if (state == 1) return true;
+				if (isFinal(state)) return true;
 				else {
 					System.out.println("Syntax error: unexpected token " + token.toString());
 					return false;
@@ -42,13 +44,17 @@ public class SubMachine {
 			}
 			state = t.nextState;
 		}
-		if (state == 1) return true;
+		if (isFinal(state)) return true;
 		else {
 			System.out.println("Syntax error: unexpected end of file.");
 			return false;
 		}
 	}
 	
+	private boolean isFinal(int state) {
+		return finalStates.contains(state);
+	}
+
 	public static class Transition {
 		int nextState;
 		SubMachine subMachine;

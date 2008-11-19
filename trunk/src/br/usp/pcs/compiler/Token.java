@@ -25,7 +25,7 @@ public class Token {
 	}
 
 	public enum TokenType {
-		IDENTIFIER("id"), STRING_LITERAL, CHAR_LITERAL, INTEGER_LITERAL("num"),
+		IDENTIFIER("id"), STRING_LITERAL("string"), CHAR_LITERAL, INTEGER_LITERAL("constante"),
 		
 		LOGICAL_OR("||"), LOGICAL_AND("&&"),
 		NOT_EQUAL("!="), EQUAL("=="),
@@ -37,12 +37,13 @@ public class Token {
 		SUBSCRIPT_OPEN("["), SUBSCRIPT_CLOSE("]"), PARENTHESES_OPEN("("), PARENTHESES_CLOSE(")"),
 		COMMA(","), SEMICOLON(";"), TILDE("~"), DOT("."),
 		
-		CHAR(true), CONST(true), CONTINUE(true),
+		CHAR(true), BREAK(true), CONTINUE(true),
 		ELSE(true),
 		FOR(true), IF(true), INT(true), 
 		RETURN(true), TYPE(true),
 		VOID(true),
-		WHILE(true);
+		WHILE(true),
+		VAR(true), FUNC(true);
 		
 		private static Set<String> keywords;
 		private String id;

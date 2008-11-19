@@ -1,36 +1,36 @@
-int LIVRE = -2;
-int NENHUM = -1;
+var int LIVRE = 0-2;
+var int NENHUM = 0-1;
 
 type item {
 	int valor;
 	int proximo; /* itens livres tem proximo = LIVRE; */
 };
 
-type item[100] lista;
-int primeiro;
+var type item[100] lista;
+var int primeiro;
 
-void inicializa() {
-	int i;
-	for (i=0; i<100; i++) lista[i].proximo = LIVRE;
+func void inicializa() {
+	var int i;
+	for (i=0; i<100; i=i+1) lista[i].proximo = LIVRE;
 	primeiro = NENHUM;
 }
 
-int proximo_livre() {
-	int i;
-	for (i=0; i<100; i++)
+func int proximo_livre() {
+	var int i;
+	for (i=0; i<100; i=i+1)
 		if (lista[i].proximo == LIVRE) return i;
 	
 	return NENHUM;
 }
 
-int ultimo() {
-	int i = primeiro;
+func int ultimo() {
+	var int i = primeiro;
 	if (primeiro == NENHUM) return NENHUM;
 	while (lista[i].proximo != NENHUM) i = lista[i].proximo;
 	return i;
 }
 
-void insere_no_fim(int valor) {
+func void insere_no_fim(int valor) {
 	if (primeiro == NENHUM) {
 		primeiro = 0;
 		lista[0].valor = valor;
@@ -43,7 +43,7 @@ void insere_no_fim(int valor) {
 	}
 }
 
-void insere_na_ordem(int valor) {
+func void insere_na_ordem(int valor) {
 	if (primeiro == NENHUM) {
 		primeiro = 0;
 		lista[0].valor = valor;
@@ -63,15 +63,15 @@ void insere_na_ordem(int valor) {
 	}
 }
 
-void dump_lista() {
-	int i = primeiro;
+func void dump_lista() {
+	var int i = primeiro;
 	while (i != NENHUM) {
 		printf("%d\n", lista[i].valor);
 		i = lista[i].proximo;
 	}
 }
 
-int main() {
+func int main() {
 	inicializa();
 	insere_na_ordem(7);
 	insere_na_ordem(3);
