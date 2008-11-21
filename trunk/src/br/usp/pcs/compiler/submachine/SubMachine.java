@@ -25,7 +25,11 @@ public class SubMachine {
 		while (lex.hasToken()) {
 			Token token = lex.nextToken();
 			System.out.println(id + ": " + ": (" + state + ") " + token.toString());
-			Transition t = transitions.get(state).get(token.getType());
+			
+			Transition t = null;
+			if (transitions.containsKey(state))
+				t = transitions.get(state).get(token.getType());
+			
 			if (t == null) {
 				lex.giveBack(token);
 				if (isFinal(state)) return true;

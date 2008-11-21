@@ -2,7 +2,7 @@ Sintaxe da linguagem em Wirth
 
 
 programa = { declaracao_variavel | declaracao_funcao | declaracao_tipo | funcao } .
-declaracao_variavel = "var" tipo id [ "=" ( constante | string ) ] { "," id [ "=" ( constante | string ) ] } ";" .
+declaracao_variavel = "var" tipo id [ "=" expressao ] { "," id [ "=" expressao ] } ";" .
 tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
 prototipo_funcao = "func" ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" .
 declaracao_funcao = prototipo_funcao ";" .
@@ -20,8 +20,8 @@ while = "while" "(" expressao ")" comando .
 Expressão:
 ==========
 
-chamada_funcao = id "(" [ expressao { "," expressao } ] ")" .
 lvalue = id { "[" expressao "]" | "." id } .
+chamada_funcao = id "(" [ expressao { "," expressao } ] ")" .
 
 expressao = { lvalue "=" } e1 .
 e1 = e2 { op2 e2 } .
@@ -66,5 +66,126 @@ expressao = { id { "[" expressao "]" | "." id } "=" } { op1 } ( id { "[" express
 
 
 
-inicializador deve poder ser expressao (constante) ??
+inicializador e tamanho de array podem ser expressões constantes ?? por hora deixa constante mesmo! por que fica foda.. não dá pra fazer x = -1;
+
+
+
+Resolver a ambiguidade da expressao
+===================================
+
+1) está assim agora:
+expressao = { id { "[" expressao "]" | "." id } "=" } { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
+
+2) mas veio daki:
+expressao = { lvalue "=" } e1 .
+e1 = e2 { op2 e2 } .
+e2 = { op1 } e3 .
+e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
+
+
+3) elimino e1:
+expressao = { lvalue "=" } e2 { op2 e2 } .
+e2 = { op1 } e3 .
+e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
+
+4) elimino e2:
+expressao = { lvalue "=" } { op1 } e3 { op2 { op1 } e3 } .
+e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
+
+5) o foda é que pode existir a seguinte construção:
+expressao = { lvalue "=" } lvalue { op2 { op1 } e3 } .
+
+por isso, quando expressao começa com lvalue, o reconheçedor precisa de um bom lookahead para saber onde está.
+
+6) vamos fazer o seguinte:
+e3 = lvalue | r .
+r = chamada_funcao | constante | "(" expressao ")" .
+
+7) elimino e3:
+expressao = { lvalue "=" } { op1 } ( lvalue | r ) { op2 { op1 } ( lvalue | r ) } .
+
+agora isolamos o caso problemático (aquele q começa com lvalue):
+expressao = x | y .
+
+x = lvalue [ "=" { lvalue "=" } { op1 } e3 ] { op2 { op1 } e3 } .
+y = ( op1 { op1 } e3 | r ) { op2 { op1 } e3 } .
+
+O fim é igualzinho. dá pra juntar..
+Mas atenção: lvalue e r (chamada_funcao) podem começar com id.
+
+expressao = ( lvalue [ "=" { lvalue "=" } { op1 } e3 ] | op1 { op1 } e3 | r ) { op2 { op1 } e3 } .
+
+8) utilizamos a seguinte substituição
+lvalue = id r_lvalue .
+chamada_funcao = id r_chamada_funcao .
+r = id r_chamada_funcao | constante | "(" expressao ")" .
+
+
+expressao = ( id r_lvalue [ "=" { lvalue "=" } { op1 } e3 ] | op1 { op1 } e3 | ( id r_chamada_funcao ) | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
+fatora id:
+********
+expressao = ( id ( r_chamada_funcao | r_lvalue [ "=" { lvalue "=" } { op1 } e3 ] ) | op1 { op1 } e3 | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
+********
+9) acho que matei! substituindo a galera:
+e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
+lvalue = id { "[" expressao "]" | "." id } .
+chamada_funcao = id "(" [ expressao { "," expressao } ] ")" .
+
+e3 = ( id ( { "[" expressao "]" | "." id } | "(" [ expressao { "," expressao } ] ")" ) | constante | "(" expressao ")" ) .
+
+expressao = ( id ( "(" [ expressao { "," expressao } ] ")" | { "[" expressao "]" | "." id } [ "=" { id { "[" expressao "]" | "." id } "=" } { op1 } e3 ] ) | op1 { op1 } e3 | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
+
+10) substituindo e3:
+
+expressao = ( id ( "(" [ expressao { "," expressao } ] ")" | { "[" expressao "]" | "." id } [ "=" { id { "[" expressao "]" | "." id } "=" } { op1 } ( id ( { "[" expressao "]" | "." id } | "(" [ expressao { "," expressao } ] ")" ) | constante | "(" expressao ")" ) ] ) | op1 { op1 } ( id ( { "[" expressao "]" | "." id } | "(" [ expressao { "," expressao } ] ")" ) | constante | "(" expressao ")" ) | constante | "(" expressao ")" ) { op2 { op1 } ( id ( { "[" expressao "]" | "." id } | "(" [ expressao { "," expressao } ] ")" ) | constante | "(" expressao ")" ) } .
+
+oh my!
+
+NADA deu certo! continua não-det. Tenho que fatorar o lvalue no e3!
+de novo:
+
+1) do passo 4 acima:
+expressao = { lvalue "=" } { op1 } e3 { op2 { op1 } e3 } .
+e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
+
+2) vamos separar em dois casos: e3 = lvalue | r .
+x = { lvalue "=" } { op1 } lvalue { op2 { op1 } e3 } .
+
+3) { op1 } = op1 { op1 } | vazio .
+x = ( { lvalue "=" } op1 { op1 } lvalue | lvalue { "=" lvalue } ) { op2 { op1 } e3 } .
+
+4) { lvalue "=" } = lvalue "=" { lvalue "=" } | vazio .
+x = ( lvalue "=" { lvalue "=" } op1 { op1 } lvalue | op1 { op1 } lvalue | lvalue { "=" lvalue } ) { op2 { op1 } e3 } .
+
+5) mas lvalue "=" { lvalue "=" } == lvalue { "=" lvalue } "="
+x = ( lvalue { "=" lvalue } "=" op1 { op1 } lvalue | op1 { op1 } lvalue | lvalue { "=" lvalue } ) { op2 { op1 } e3 } .
+
+6) fatorando lvalue:
+x = ( lvalue { "=" lvalue } [ "=" op1 { op1 } lvalue ] | op1 { op1 } lvalue) { op2 { op1 } e3 } .
+
+7) y (quando e3 -> r)
+y = { lvalue "=" } { op1 } r { op2 { op1 } e3 } .
+
+8) para tirar a ambiguidade, fatora o id:
+y = { id r_lvalue "=" } { op1 } ( id r_chamada_funcao | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
+
+9) { op1 } = op1 { op1 } | vazio .
+quando { op1 } -> vazio:
+y1 = { id r_lvalue "=" } ( id r_chamada_funcao | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
+
+10) a cadeia pode começar com id ou não:
+y1 = ( id ( r_chamada_funcao | { id r_lvalue "=" } id  ) | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
+
+
+ta com cara de que não vou chegar em lugar nenhum. a expressao x em 6, não dá pra fatorar o "=". e nesta última (10), não dá pra fatorar id.
+
+Acho que devo fazer o seguinte:
+pegar a expressao original, gerar o autômato não-determinístico... pensar nas ações semanticas.. e transformá-lo... Acho que a notação de wirth não consegue representar (de forma determinística) um autômato qualquer.
+
+vamos lá:
+
+expressao = 0 { 2 lvalue 3 "=" 2 } 2 { 4 op1 5 } 4 e3 6 { 7 op2 8 { 9 op1 10 } 9 e3 11 } 7 . 1
+e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
+lvalue = id { "[" expressao "]" | "." id } .
+chamada_funcao = id "(" [ expressao { "," expressao } ] ")" .
 
