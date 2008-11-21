@@ -13,15 +13,12 @@ public class SubMachineCreator implements SubMachineInterpreter {
 	private SubMachine main;
 	private Map<String, SubMachine> submachines = new HashMap<String, SubMachine>();
 	private SubMachine current;
-	private int currentState;
-	private Map<TokenType, Transition> transitions;
 	private Map<String, Set<String>> first;
 
 	public SubMachineCreator(Map<String, Set<String>> firstMap) {
 		first = firstMap;
 	}
 
-	@Override
 	public void machine(String id) {
 		current = getOrCreateSubMachine(id);
 		if (main == null) main = current;
@@ -40,36 +37,28 @@ public class SubMachineCreator implements SubMachineInterpreter {
 		return sm;
 	}
 
-	@Override
-	public void state(int num) {
-		currentState = num;
-		assert !current.transitions.containsKey(num) : "duplicated state definition";
-		transitions = new HashMap<TokenType, Transition>();
-		current.transitions.put(num, transitions);
-	}
-
-	@Override
 	public void finalState(int num) {
-		currentState = num;
-		assert !current.transitions.containsKey(num) : "duplicated state definition";
-		transitions = new HashMap<TokenType, Transition>();
-		current.transitions.put(num, transitions);
 		current.finalStates.add(num);
 	}
 
-	@Override
-	public void transition(String tokenType, int nextState) {
+	public void transition(int state, String tokenType, int next) {
 		TokenType tt = TokenType.getById(tokenType);
 		if (tt == null) {
 			throw new RuntimeException("unkown token class: " + tokenType);
 		}
 		
-		assert !transitions.containsKey(tt) : "duplicated transition. " + current.getId() + ":" + currentState + ":" + tt.toString();
-		transitions.put(tt, new Transition(nextState));
+		Map<TokenType, Transition> map;
+		if (!current.transitions.containsKey(state)) {
+			map = new HashMap<TokenType, Transition>();
+			current.transitions.put(state, map);
+		} else {
+			map = current.transitions.get(state);
+			if (map.containsKey(tt)) throw new RuntimeException("duplicated transition. " + current.getId() + ":" + state + ":" + tt.toString());
+		}
+		map.put(tt, new Transition(next));
 	}
 
-	@Override
-	public void subMachineCall(String subMachineId, int nextState) {
+	public void subMachineCall(int state, String subMachineId, int next) {
 		SubMachine sm = getOrCreateSubMachine(subMachineId);
 		for (String s : first.get(subMachineId)) {
 			TokenType tt = TokenType.getById(s);
@@ -77,12 +66,18 @@ public class SubMachineCreator implements SubMachineInterpreter {
 				throw new RuntimeException("unkown token class: " + s);
 			}
 			
-			assert !transitions.containsKey(tt) : "duplicated transition. " + current.getId() + ":" + currentState + ":" + subMachineId;
-			transitions.put(tt, new Transition(sm, nextState));
+			Map<TokenType, Transition> map;
+			if (!current.transitions.containsKey(state)) {
+				map = new HashMap<TokenType, Transition>();
+				current.transitions.put(state, map);
+			} else {
+				map = current.transitions.get(state);
+				if (map.containsKey(tt)) throw new RuntimeException("duplicated transition. " + current.getId() + ":" + state + ":" + tt.toString());
+			}
+			map.put(tt, new Transition(sm, next));
 		}
 	}
 	
-	@Override
 	public void eof() {
 		
 	}

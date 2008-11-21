@@ -36,7 +36,7 @@ func void insere_no_fim(int valor) {
 		lista[0].valor = valor;
 		lista[0].proximo = NENHUM;
 	} else {
-		int livre = proximo_livre();
+		var int livre = proximo_livre();
 		lista[ultimo()].proximo = livre;
 		lista[livre].valor = valor;
 		lista[livre].proximo = NENHUM;
@@ -49,14 +49,14 @@ func void insere_na_ordem(int valor) {
 		lista[0].valor = valor;
 		lista[0].proximo = NENHUM;
 	} else if (valor < lista[primeiro].valor) {
-		int livre = proximo_livre();
+		var int livre = proximo_livre();
 		lista[livre].valor = valor;
 		lista[livre].proximo = primeiro;
 		primeiro = livre;
 	} else {
-		int i = primeiro;
+		var int i = primeiro;
+		var int livre = proximo_livre();
 		while (lista[i].proximo != NENHUM && lista[lista[i].proximo].valor < valor) i = lista[i].proximo;
-		int livre = proximo_livre();
 		lista[livre].valor = valor;
 		lista[livre].proximo = lista[i].proximo;
 		lista[i].proximo = livre;

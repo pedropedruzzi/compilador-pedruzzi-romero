@@ -13,58 +13,41 @@ import br.usp.pcs.compiler.Token.TokenType;
 
 public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 	
+	private static final String VAZIO = "__vazio";
+	
 	// set of interested submachines
 	private Set<String> interested = new HashSet<String>();
+	
 	private Map<String, Set<String>> firstToken = new HashMap<String, Set<String>>();
 	private Map<String, Set<String>> firstSM = new HashMap<String, Set<String>>();
 	
 	private Map<String, Set<String>> finalFirst;
 	
 	private String currentMachine;
-	private boolean firstState;
-
-	/* (non-Javadoc)
-	 * @see SubMachineInterpreter#machine(java.lang.String)
-	 */
+	
 	public void machine(String id) {
 		currentMachine = id;
-		firstState = false;
 		firstToken.put(id, new HashSet<String>());
 		firstSM.put(id, new HashSet<String>());
 	}
 	
-	/* (non-Javadoc)
-	 * @see SubMachineInterpreter#state(int)
-	 */
-	public void state(int num) {
-		firstState = (num == 0);
-	}
-	
-	@Override
 	public void finalState(int num) {
-		firstState = (num == 0);
+		if (num == 0) firstToken.get(currentMachine).add(VAZIO);
 	}
 	
-	/* (non-Javadoc)
-	 * @see SubMachineInterpreter#transition(java.lang.String, int)
-	 */
-	public void transition(String tokenType, int nextState) {
-		if (firstState) {
+	public void transition(int state, String tokenType, int next) {
+		if (state == 0) {
 			firstToken.get(currentMachine).add(tokenType);
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see SubMachineInterpreter#subMachineCall(java.lang.String, int)
-	 */
-	public void subMachineCall(String subMachineId, int nextState) {
+	public void subMachineCall(int state, String subMachineId, int next) {
 		interested.add(subMachineId);
-		if (firstState) {
+		if (state == 0) {
 			firstSM.get(currentMachine).add(subMachineId);
 		}
 	}
 
-	@Override
 	public void eof() {
 		finalFirst = new HashMap<String, Set<String>>();
 		
@@ -80,6 +63,7 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 				close(son);
 				first.addAll(firstToken.get(son));
 			}
+			if (first.contains(VAZIO)) throw new RuntimeException("submachine may produce an empty string: " + subMachineId);
 			finalFirst.put(subMachineId, first);
 		}
 	}
@@ -100,7 +84,7 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		System.out.println(S.transitions);
 		//System.exit(0);
 		
-		Lex lex = new LexicalParser("res/teste1.c");
+		Lex lex = new LexicalParser("res/teste2.c");
 		//while (lex.hasToken()) System.out.println(lex.nextToken());
 		
 		System.out.println("resultados = " + S.execute(lex, new SemanticActionManager() {
@@ -112,282 +96,533 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 			}
 			
 		}));
+		
+		// compilation ok if there is no more tokens left
+		System.out.println(lex.hasToken());
 	}
 	
 	public static void inputData(SubMachineInterpreter i) {
-		// programa = { declaracao_variavel | declaracao_tipo | funcao } .
+		int state;
+		
 		i.machine("programa");
 		i.finalState(0);
-		i.subMachineCall("declaracao_variavel", 0);
-		i.subMachineCall("declaracao_tipo", 0);
-		i.subMachineCall("funcao", 0);
+		i.transition(0, "int", 1);
+		i.transition(0, "char", 1);
+		i.transition(1, "id", 2);
+		i.subMachineCall(2, "r_funcao", 0);
+		i.subMachineCall(2, "r_declaracao_variavel", 0);
 		
-		// declaracao_variavel = "var" tipo id [ "=" ( constante | string ) ] { "," id [ "=" ( constante | string ) ] } ";" .
+		i.transition(1, "[", 8);
+		i.transition(8, "constante", 10);
+		i.transition(8, "]", 11);
+		i.transition(10, "]", 11);
+		i.transition(11, "[", 9);
+		i.transition(9, "constante", 10);
+		i.transition(11, "id", 12);
+		i.subMachineCall(12, "r_declaracao_variavel", 0);
+		
+		i.transition(0, "void", 3);
+		i.transition(3, "id", 4);
+		i.subMachineCall(4, "r_funcao", 0);
+		
+		i.transition(0, "type", 5);
+		i.transition(5, "id", 6);
+		i.subMachineCall(6, "r_declaracao_tipo", 0);
+		i.transition(6, "id", 7);
+		i.transition(6, "[", 8);
+		i.subMachineCall(7, "r_declaracao_variavel", 0);
+		
+		// r_declaracao_variavel = [ "=" expressao ] { "," id [ "=" expressao ] } ";" .
+		i.machine("r_declaracao_variavel");
+		i.transition(0, ";", 1);
+		i.transition(0, "=", 2);
+		i.transition(0, ",", 4);
+		i.subMachineCall(2, "expressao", 3);
+		i.transition(3, ";", 1);
+		i.transition(3, ",", 4);
+		i.transition(4, "id", 0);
+		i.finalState(1);
+		
+		// declaracao_variavel = tipo id r_declaracao_variavel .
 		i.machine("declaracao_variavel");
-		i.state(0);
-		i.transition("var", 2);
-		i.state(2);
-		i.subMachineCall("tipo", 3);
-		i.state(3);
-		i.transition("id", 4);
-		i.state(4);
-		i.transition(";", 1);
-		i.transition("=", 5);
-		i.transition(",", 3);
-		i.state(5);
-		i.transition("string", 6);
-		i.subMachineCall("expressao", 6);
-		i.state(6);
-		i.transition(";", 1);
-		i.transition(",", 3);
+		i.subMachineCall(0, "tipo", 2);
+		i.transition(2, "id", 3);
+		i.subMachineCall(3, "r_declaracao_variavel", 1);
 		i.finalState(1);
 		
 		// tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
 		i.machine("tipo");
-		i.state(0);
-		i.transition("int", 3);
-		i.transition("char", 3);
-		i.transition("type", 2);
-		i.state(2);
-		i.transition("id", 3);
-		i.finalState(3);
-		i.transition("[", 4);
-		i.state(4);
-		i.transition("]", 5);
-		i.transition("constante", 7);
-		i.finalState(5);
-		i.transition("[", 6);
-		i.state(6);
-		i.transition("constante", 7);
-		i.state(7);
-		i.transition("]", 5);
+		state = 0;
+		i.transition(state, "int", 3);
+		i.transition(state, "char", 3);
+		i.transition(state, "type", 2);
+		state = 2;
+		i.transition(state, "id", 3);
+		state = 3;
+		i.finalState(state);
+		i.transition(state, "[", 4);
+		state = 4;
+		i.transition(state, "]", 5);
+		i.transition(state, "constante", 7);
+		state = 5;
+		i.finalState(state);
+		i.transition(state, "[", 6);
+		state = 6;
+		i.transition(state, "constante", 7);
+		state = 7;
+		i.transition(state, "]", 5);
 		
-		// declaracao_tipo = "type" id "{" tipo id ";" { tipo id ";" } "}" ";" .
-		i.machine("declaracao_tipo");
-		i.state(0);
-		i.transition("type", 2);
-		i.state(2);
-		i.transition("id", 3);
-		i.state(3);
-		i.transition("{", 5);
-		i.state(5);
-		i.subMachineCall("tipo", 6);
-		i.state(6);
-		i.transition("id", 7);
-		i.state(7);
-		i.transition(";", 8);
-		i.state(8);
-		i.transition("}", 9);
-		i.subMachineCall("tipo", 6);
-		i.state(9);
-		i.transition(";", 1);
+		// r_declaracao_tipo = "{" tipo id ";" { tipo id ";" } "}" ";" .
+		i.machine("r_declaracao_tipo");
+		i.transition(0, "{", 2);
+		i.subMachineCall(2, "tipo", 3);
+		i.transition(3, "id", 4);
+		i.transition(4, ";", 5);
+		i.transition(5, "}", 6);
+		i.subMachineCall(5, "tipo", 3);
+		i.transition(6, ";", 1);
 		i.finalState(1);
 		
-		// funcao = "func" ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
-		i.machine("funcao");
-		i.state(0);
-		i.transition("func", 2);
-		i.state(2);
-		i.transition("int", 3);
-		i.transition("char", 3);
-		i.transition("void", 3);
-		i.state(3);
-		i.transition("id", 4);
-		i.state(4);
-		i.transition("(", 5);
-		i.state(5);
-		i.transition(")", 6); // continua
-		i.subMachineCall("tipo", 7);
-		i.state(7);
-		i.transition("id", 8);
-		i.state(8);
-		i.transition(")", 6);
-		i.transition(",", 9);
-		i.state(9);
-		i.subMachineCall("tipo", 7);
-		i.state(6);
-		i.transition(";", 1);
-		i.transition("{", 10);
-		i.state(10);
-		i.subMachineCall("declaracao_variavel", 10);
-		i.transition("}", 1);
-		i.subMachineCall("comando", 11);
-		i.state(11);
-		i.subMachineCall("comando", 11);
-		i.transition("}", 1);
+		// r_funcao = "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
+		// ok
+		i.machine("r_funcao");
+		i.transition(0, "(", 5);
+		i.transition(5, ")", 6); // continua
+		i.subMachineCall(5, "tipo", 7);
+		i.transition(7, "id", 8);
+		i.transition(8, ")", 6);
+		i.transition(8, ",", 9);
+		i.subMachineCall(9, "tipo", 7);
+		i.transition(6, ";", 1);
+		i.transition(6, "{", 10);
+		i.subMachineCall(10, "declaracao_variavel", 10);
+		i.transition(10, "}", 1);
+		i.subMachineCall(10, "comando", 11);
+		i.subMachineCall(11, "comando", 11);
+		i.transition(11, "}", 1);
 		i.finalState(1);
 		
 		// comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
 		i.machine("comando");
-		i.state(0);
-		i.transition("{", 2);
-		i.subMachineCall("expressao", 4);
-		i.transition("continue", 4);
-		i.transition("break", 4);
-		i.transition("return", 5);
-		i.transition(";", 1);
-		i.transition("if", 6);
-		i.transition("for", 12);
-		i.transition("while", 20);
-		i.state(2);
-		i.subMachineCall("declaracao_variavel", 2);
-		i.transition("}", 1);
-		i.subMachineCall("comando", 3);
-		i.state(3);
-		i.subMachineCall("comando", 3);
-		i.transition("}", 1);
-		i.state(4);
-		i.transition(";", 1);
-		i.state(5);
-		i.subMachineCall("expressao", 4);
-		i.state(6);
-		i.transition("(", 7);
-		i.state(7);
-		i.subMachineCall("expressao", 8);
-		i.state(8);
-		i.transition(")", 9);
-		i.state(9);
-		i.subMachineCall("comando", 10);
-		i.finalState(10);
-		i.transition("else", 11);
-		i.state(11);
-		i.subMachineCall("comando", 1);
-		i.state(12);
-		i.transition("(", 13);
-		i.state(13);
-		i.subMachineCall("expressao", 14);
-		i.state(14);
-		i.transition(";", 15);
-		i.state(15);
-		i.subMachineCall("expressao", 16);
-		i.state(16);
-		i.transition(";", 17);
-		i.state(17);
-		i.subMachineCall("expressao", 18);
-		i.state(18);
-		i.transition(")", 19);
-		i.state(19);
-		i.subMachineCall("comando", 1);
-		i.state(20);
-		i.transition("(", 21);
-		i.state(21);
-		i.subMachineCall("expressao", 22);
-		i.state(22);
-		i.transition(")", 23);
-		i.state(23);
-		i.subMachineCall("comando", 1);
+		state = 0;
+		i.transition(state, "{", 2);
+		i.subMachineCall(state, "expressao", 4);
+		i.transition(state, "continue", 4);
+		i.transition(state, "break", 4);
+		i.transition(state, "return", 5);
+		i.transition(state, ";", 1);
+		i.transition(state, "if", 6);
+		i.transition(state, "for", 12);
+		i.transition(state, "while", 20);
+		state = 2;
+		i.subMachineCall(state, "declaracao_variavel", 2);
+		i.transition(state, "}", 1);
+		i.subMachineCall(state, "comando", 3);
+		state = 3;
+		i.subMachineCall(state, "comando", 3);
+		i.transition(state, "}", 1);
+		state = 4;
+		i.transition(state, ";", 1);
+		state = 5;
+		i.subMachineCall(state, "expressao", 4);
+		state = 6;
+		i.transition(state, "(", 7);
+		state = 7;
+		i.subMachineCall(state, "expressao", 8);
+		state = 8;
+		i.transition(state, ")", 9);
+		state = 9;
+		i.subMachineCall(state, "comando", 10);
+		state = 10;
+		i.finalState(state);
+		i.transition(state, "else", 11);
+		state = 11;
+		i.subMachineCall(state, "comando", 1);
+		state = 12;
+		i.transition(state, "(", 13);
+		state = 13;
+		i.subMachineCall(state, "expressao", 14);
+		state = 14;
+		i.transition(state, ";", 15);
+		state = 15;
+		i.subMachineCall(state, "expressao", 16);
+		state = 16;
+		i.transition(state, ";", 17);
+		state = 17;
+		i.subMachineCall(state, "expressao", 18);
+		state = 18;
+		i.transition(state, ")", 19);
+		state = 19;
+		i.subMachineCall(state, "comando", 1);
+		state = 20;
+		i.transition(state, "(", 21);
+		state = 21;
+		i.subMachineCall(state, "expressao", 22);
+		state = 22;
+		i.transition(state, ")", 23);
+		state = 23;
+		i.subMachineCall(state, "comando", 1);
 		i.finalState(1);
 		
-		// expressao = { id { "[" expressao "]" | "." id } "=" } { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
-		// TODO
+
 		i.machine("expressao");
-		i.state(0);
-		i.transition("constante", 1);
-		i.transition("id", 1);
+		String[] op2 = { "+", "-", "*", "/", "%", "!=", "==", "<", "<=", ">", ">=", "&", "&&", "|", "||", "^", ">>", "<<" };
+		String[] op1 = { "!", "~", "-" };
+		
+		i.transition(0, "constante", 3);
+		i.transition(0, "string", 3);
+		
+		i.transition(0, "(", 1);
+		i.subMachineCall(1, "expressao", 2);
+		i.transition(2, ")", 3);
+		
+		i.finalState(3);
+		
+		for (String op : op1) {
+			i.transition(0, op, 4);
+			i.transition(4, op, 4);
+		}
+		
+		// 4 ===e3==> 3
+
+		i.transition(4, "constante", 3);
+		i.transition(4, "string", 3);
+		
+		i.transition(4, "(", 5);
+		i.subMachineCall(5, "expressao", 6);
+		i.transition(6, ")", 3);
+		
+		i.transition(4, "id", 7);
+		i.finalState(7);
+		for (String op : op2)
+			i.transition(7, op, 8);
+		
+		i.subMachineCall(7, "r_lvalue", 3);
+		i.transition(7, "(", 9);
+		i.transition(9, ")", 3);
+		i.subMachineCall(9, "expressao", 10);
+		i.transition(10, ")", 3);
+		i.transition(10, ",", 11);
+		i.subMachineCall(11, "expressao", 10);
+		
+		// FIM
+		
+		for (String op : op2)
+			i.transition(3, op, 8);
+		
+		for (String op : op1)
+			i.transition(8, op, 8);
+		
+		// 8 ===e3==> 3
+
+		i.transition(8, "constante", 3);
+		i.transition(8, "string", 3);
+		i.transition(8, "(", 5);
+		i.transition(8, "id", 7);
+		
+		// FIM
+		
+		i.transition(0, "id", 12);
+		i.finalState(12);
+		i.transition(12, "=", 0);
+		i.subMachineCall(12, "r_lvalue", 13);
+		i.finalState(13);
+		i.transition(13, "=", 0);
+		
+		for (String op : op2) {
+			i.transition(12, op, 8);
+			i.transition(13, op, 8);
+		}
+		
+		i.transition(12, "(", 14);
+		i.transition(14, ")", 15);
+		i.finalState(15);
+		i.subMachineCall(14, "expressao", 16);
+		i.transition(16, ")", 15);
+		i.transition(16, ",", 17);
+		i.subMachineCall(17, "expressao", 16);
+		
+		
+		i.machine("r_lvalue");
 		i.finalState(1);
-		i.transition("+", 2);
-		i.transition("-", 2);
-		i.transition("=", 2);
-		i.state(2);
-		i.transition("constante", 1);
-		i.transition("id", 1);
+		i.transition(0, ".", 2);
+		i.transition(1, ".", 2);
+		i.transition(2, "id", 1);
+		i.transition(0, "[", 3);
+		i.transition(1, "[", 3);
+		i.subMachineCall(3, "expressao", 4);
+		i.transition(4, "]", 1);
+		
+		
 		
 		i.eof();
 		
 		
 	}
 	
-	public static void inputDataOld(SubMachineInterpreter i) {
-		// comando = 0 "{" 2 { 3 comando 4 } 3 "}" 5 | 0 expressao 6 ";" 7 | 0 "if" 8 "(" 9 expressao 10 ")" 11 comando 12 "else" 13 comando 14 | 0 "while" 15 "(" 16 expressao 17 ")" 18 comando 19 | 0 "for" 20 "(" 21 expressao 22 ";" 23 expressao 24 ";" 25 expressao 26 ")" 27 comando 28 | 0 "return" 29 expressao 30 . 1MOD
-		// expressao = 0 ( 0 "INTEGER_LITERAL" 3 | 0 "IDENTIFIER" 4 ) 2 { 5 "+" 6 ( 6 "INTEGER_LITERAL" 8 | 6 "IDENTIFIER" 9 ) 7 } 5 . 1 MOD
-		// termo = "INTEGER_LITERAL" | "IDENTIFIER" .
+	public static void inputDataVARFUNC(SubMachineInterpreter i) {
+		int state;
 		
+		// programa = { declaracao_variavel | declaracao_tipo | funcao } .
+		i.machine("programa");
+		i.finalState(0);
+		i.subMachineCall(0, "declaracao_variavel", 0);
+		i.subMachineCall(0, "declaracao_tipo", 0);
+		i.subMachineCall(0, "funcao", 0);
+		
+		// declaracao_variavel = "var" tipo id [ "=" ( constante | string ) ] { "," id [ "=" ( constante | string ) ] } ";" .
+		state = 0;
+		i.machine("declaracao_variavel");
+		state = 0;
+		i.transition(state, "var", 2);
+		state = 2;
+		i.subMachineCall(state, "tipo", 3);
+		state = 3;
+		i.transition(state, "id", 4);
+		state = 4;
+		i.transition(state, ";", 1);
+		i.transition(state, "=", 5);
+		i.transition(state, ",", 3);
+		state = 5;
+		i.subMachineCall(state, "expressao", 6);
+		state = 6;
+		i.transition(state, ";", 1);
+		i.transition(state, ",", 3);
+		i.finalState(1);
+		
+		// tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
+		i.machine("tipo");
+		state = 0;
+		i.transition(state, "int", 3);
+		i.transition(state, "char", 3);
+		i.transition(state, "type", 2);
+		state = 2;
+		i.transition(state, "id", 3);
+		state = 3;
+		i.finalState(state);
+		i.transition(state, "[", 4);
+		state = 4;
+		i.transition(state, "]", 5);
+		i.transition(state, "constante", 7);
+		state = 5;
+		i.finalState(state);
+		i.transition(state, "[", 6);
+		state = 6;
+		i.transition(state, "constante", 7);
+		state = 7;
+		i.transition(state, "]", 5);
+		
+		// declaracao_tipo = "type" id "{" tipo id ";" { tipo id ";" } "}" ";" .
+		i.machine("declaracao_tipo");
+		state = 0;
+		i.transition(state, "type", 2);
+		state = 2;
+		i.transition(state, "id", 3);
+		state = 3;
+		i.transition(state, "{", 5);
+		state = 5;
+		i.subMachineCall(state, "tipo", 6);
+		state = 6;
+		i.transition(state, "id", 7);
+		state = 7;
+		i.transition(state, ";", 8);
+		state = 8;
+		i.transition(state, "}", 9);
+		i.subMachineCall(state, "tipo", 6);
+		state = 9;
+		i.transition(state, ";", 1);
+		i.finalState(1);
+		
+		// funcao = "func" ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
+		i.machine("funcao");
+		state = 0;
+		i.transition(state, "func", 2);
+		state = 2;
+		i.transition(state, "int", 3);
+		i.transition(state, "char", 3);
+		i.transition(state, "void", 3);
+		state = 3;
+		i.transition(state, "id", 4);
+		state = 4;
+		i.transition(state, "(", 5);
+		state = 5;
+		i.transition(state, ")", 6); // continua
+		i.subMachineCall(state, "tipo", 7);
+		state = 7;
+		i.transition(state, "id", 8);
+		state = 8;
+		i.transition(state, ")", 6);
+		i.transition(state, ",", 9);
+		state = 9;
+		i.subMachineCall(state, "tipo", 7);
+		state = 6;
+		i.transition(state, ";", 1);
+		i.transition(state, "{", 10);
+		state = 10;
+		i.subMachineCall(state, "declaracao_variavel", 10);
+		i.transition(state, "}", 1);
+		i.subMachineCall(state, "comando", 11);
+		state = 11;
+		i.subMachineCall(state, "comando", 11);
+		i.transition(state, "}", 1);
+		i.finalState(1);
+		
+		// comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
 		i.machine("comando");
-		i.state(0);
-		i.transition("{", 2);
-		i.subMachineCall("expressao", 6);
-		i.transition("if", 8);
-		i.transition("while", 15);
-		i.transition("for", 20);
-		i.transition("return", 29);
-		i.state(2);
-		i.subMachineCall("comando", 2);
-		i.transition("}", 1);
-		i.state(6);
-		i.transition(";", 1);
+		state = 0;
+		i.transition(state, "{", 2);
+		i.subMachineCall(state, "expressao", 4);
+		i.transition(state, "continue", 4);
+		i.transition(state, "break", 4);
+		i.transition(state, "return", 5);
+		i.transition(state, ";", 1);
+		i.transition(state, "if", 6);
+		i.transition(state, "for", 12);
+		i.transition(state, "while", 20);
+		state = 2;
+		i.subMachineCall(state, "declaracao_variavel", 2);
+		i.transition(state, "}", 1);
+		i.subMachineCall(state, "comando", 3);
+		state = 3;
+		i.subMachineCall(state, "comando", 3);
+		i.transition(state, "}", 1);
+		state = 4;
+		i.transition(state, ";", 1);
+		state = 5;
+		i.subMachineCall(state, "expressao", 4);
+		state = 6;
+		i.transition(state, "(", 7);
+		state = 7;
+		i.subMachineCall(state, "expressao", 8);
+		state = 8;
+		i.transition(state, ")", 9);
+		state = 9;
+		i.subMachineCall(state, "comando", 10);
+		state = 10;
+		i.finalState(state);
+		i.transition(state, "else", 11);
+		state = 11;
+		i.subMachineCall(state, "comando", 1);
+		state = 12;
+		i.transition(state, "(", 13);
+		state = 13;
+		i.subMachineCall(state, "expressao", 14);
+		state = 14;
+		i.transition(state, ";", 15);
+		state = 15;
+		i.subMachineCall(state, "expressao", 16);
+		state = 16;
+		i.transition(state, ";", 17);
+		state = 17;
+		i.subMachineCall(state, "expressao", 18);
+		state = 18;
+		i.transition(state, ")", 19);
+		state = 19;
+		i.subMachineCall(state, "comando", 1);
+		state = 20;
+		i.transition(state, "(", 21);
+		state = 21;
+		i.subMachineCall(state, "expressao", 22);
+		state = 22;
+		i.transition(state, ")", 23);
+		state = 23;
+		i.subMachineCall(state, "comando", 1);
+		i.finalState(1);
 		
-		i.state(8);
-		i.transition("(", 9);
-		i.state(9);
-		i.subMachineCall("expressao", 10);
-		i.state(10);
-		i.transition(")", 11);
-		i.state(11);
-		i.subMachineCall("comando", 12);
-		i.state(12);
-		i.transition("else", 13);
-		
-		i.state(13);
-		i.subMachineCall("comando", 1);
-		i.state(15);
-		i.transition("(", 16);
-		i.state(16);
-		i.subMachineCall("expressao", 17);
-		i.state(17);
-		i.transition(")", 18);
-		i.state(18);
-		i.subMachineCall("comando", 1);
-		
-		i.state(20);
-		i.transition("(", 21);
-		i.state(21);
-		i.subMachineCall("expressao", 22);
-		i.state(22);
-		i.transition(";", 23);
-		i.state(23);
-		i.subMachineCall("expressao", 24);
-		i.state(24);
-		i.transition(";", 25);
-		i.state(25);
-		i.subMachineCall("expressao", 26);
-		i.state(26);
-		i.transition(")", 27);
-		i.state(27);
-		i.subMachineCall("comando", 1);
-		
-		i.state(29);
-		i.subMachineCall("expressao", 30);
-		i.state(30);
-		i.transition(";", 1);
-		i.state(1);
-		
-
 
 		i.machine("expressao");
-		i.state(0);
-		i.transition("num", 1);
-		i.transition("id", 1);
-		i.state(1);
-		i.transition("+", 2);
-		i.state(2);
-		i.transition("num", 1);
-		i.transition("id", 1);
+		String[] op2 = { "+", "-", "*", "/", "%", "!=", "==", "<", "<=", ">", ">=", "&", "&&", "|", "||", "^", ">>", "<<" };
+		String[] op1 = { "!", "~", "-" };
+		
+		i.transition(0, "constante", 3);
+		i.transition(0, "string", 3);
+		
+		i.transition(0, "(", 1);
+		i.subMachineCall(1, "expressao", 2);
+		i.transition(2, ")", 3);
+		
+		i.finalState(3);
+		
+		for (String op : op1) {
+			i.transition(0, op, 4);
+			i.transition(4, op, 4);
+		}
+		
+		// 4 ===e3==> 3
+
+		i.transition(4, "constante", 3);
+		i.transition(4, "string", 3);
+		
+		i.transition(4, "(", 5);
+		i.subMachineCall(5, "expressao", 6);
+		i.transition(6, ")", 3);
+		
+		i.transition(4, "id", 7);
+		i.finalState(7);
+		for (String op : op2)
+			i.transition(7, op, 8);
+		
+		i.subMachineCall(7, "r_lvalue", 3);
+		i.transition(7, "(", 9);
+		i.transition(9, ")", 3);
+		i.subMachineCall(9, "expressao", 10);
+		i.transition(10, ")", 3);
+		i.transition(10, ",", 11);
+		i.subMachineCall(11, "expressao", 10);
+		
+		// FIM
+		
+		for (String op : op2)
+			i.transition(3, op, 8);
+		
+		for (String op : op1)
+			i.transition(8, op, 8);
+		
+		// 8 ===e3==> 3
+
+		i.transition(8, "constante", 3);
+		i.transition(8, "string", 3);
+		i.transition(8, "(", 5);
+		i.transition(8, "id", 7);
+		
+		// FIM
+		
+		i.transition(0, "id", 12);
+		i.finalState(12);
+		i.transition(12, "=", 0);
+		i.subMachineCall(12, "r_lvalue", 13);
+		i.finalState(13);
+		i.transition(13, "=", 0);
+		
+		for (String op : op2) {
+			i.transition(12, op, 8);
+			i.transition(13, op, 8);
+		}
+		
+		i.transition(12, "(", 14);
+		i.transition(14, ")", 15);
+		i.finalState(15);
+		i.subMachineCall(14, "expressao", 16);
+		i.transition(16, ")", 15);
+		i.transition(16, ",", 17);
+		i.subMachineCall(17, "expressao", 16);
+		
+		
+		i.machine("r_lvalue");
+		i.finalState(1);
+		i.transition(0, ".", 2);
+		i.transition(1, ".", 2);
+		i.transition(2, "id", 1);
+		i.transition(0, "[", 3);
+		i.transition(1, "[", 3);
+		i.subMachineCall(3, "expressao", 4);
+		i.transition(4, "]", 1);
+		
+		
 		
 		i.eof();
 		
-	}
-	
-	public static void inputDataPetros(SubMachineInterpreter i) {
-		// programa-petros = "PROGRAMA" identificador declaracoes bloco-comandos.
-		i.machine("programa-petros");
-		i.state(0);
-		i.transition("PROGRAMA", 2);
-		i.state(2);
-		i.transition("ID", 3);
-		i.state(3);
-		i.subMachineCall("declaracoes", 4);
-		i.state(4);
-		i.subMachineCall("bloco-comandos", 1);
+		
 	}
 	
 }
