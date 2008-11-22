@@ -90,9 +90,8 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		System.out.println("resultados = " + S.execute(lex, new SemanticActionManager() {
 
 			@Override
-			public void processTransition(String subMachineId, int state,
-					TokenType tokenType, Token token) {
-				//System.out.println(subMachineId + ": (" + state + "," + tokenType.toString() + ")");
+			public void processTransition(String subMachineId, int state, TokenType tokenType, Token token) {
+				
 			}
 			
 		}));
@@ -622,6 +621,20 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		
 		i.eof();
 		
+		
+	}
+	
+	private static class Teste implements SemanticActionManager {
+		
+		private SymbolTable st;
+
+		public void processTransition(String subMachineId, int state, TokenType tokenType, Token token) {
+			if (subMachineId.equals("r_lvalue")) {
+				switch (state) {
+				case 0:
+				}
+			}
+		}
 		
 	}
 	
