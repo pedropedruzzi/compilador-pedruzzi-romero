@@ -1,0 +1,57 @@
+programa
+	r_funcao
+	r_declaracao_variavel
+	r_declaracao_tipo
+
+r_declaracao_variavel
+	expressao
+
+// declaracao_variavel = tipo id r_declaracao_variavel .
+declaracao_variavel
+	r_declaracao_variavel
+
+
+// tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
+tipo
+
+// r_declaracao_tipo = "{" tipo id ";" { tipo id ";" } "}" ";" .
+r_declaracao_tipo
+	tipo
+
+// r_funcao = "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
+r_funcao
+	tipo
+	declaracao_variavel
+	comando
+
+// comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+comando
+	expressao
+	declaracao_variavel
+	comando
+
+
+expressao
+	expressao
+	r_lvalue
+
+
+r_lvalue
+	expressao
+	
+	
+	
+char [3][5][10]
+
+array 3
+	array 5
+		array 10
+			char
+			
+			
+char [][5][10]
+
+array ?
+	array 5
+		array 10
+			char
