@@ -1,6 +1,6 @@
 package br.usp.pcs.compiler.submachine;
+
 import java.util.Map;
-import java.util.Set;
 
 import br.usp.pcs.compiler.Lex;
 import br.usp.pcs.compiler.Token;
@@ -8,19 +8,17 @@ import br.usp.pcs.compiler.Token.TokenType;
 
 
 public class SubMachine {
-
-	//private Lex lex;
-	//private SemanticActionManager sam;
+	
 	private String id;
 	
 	Map<Integer, Map<TokenType, Transition>> transitions;
-	Set<Integer> finalStates;
+	Map<Integer, SubMachineReturnAction> finalStates;
 	
 	public SubMachine(String id) {
 		this.id = id;
 	}
 
-	public boolean execute(Lex lex, SemanticActionManager sam) {
+	public Object execute(Lex lex) {
 		int state = 0;
 		while (lex.hasToken()) {
 			Token token = lex.nextToken();
@@ -32,57 +30,54 @@ public class SubMachine {
 			
 			if (t == null) {
 				lex.giveBack(token);
-				if (isFinal(state)) return true;
+				if (isFinal(state)) {
+					SubMachineReturnAction action = getReturnAction(state);
+					if (action == null) return true;
+					else return action.returnAction();
+				}
 				else {
 					System.out.println("Syntax error: unexpected token " + token.toString());
-					return false;
+					return null;
 				}
 			}
-			if (t.subMachine != null) {
-				// submachine call
+			
+			if (t instanceof SubMachineCall) {
 				lex.giveBack(token);
-				if (!t.subMachine.execute(lex, sam)) return false;
+				SubMachineCall smc = (SubMachineCall) t;
+				Object result = smc.getSubMachine().execute(lex);
+				if (result == null) return null;
+
+				for (SemanticAction sa : t.getActions())
+					sa.doAction(result);
 			} else {
-				// simple transition
-				sam.processTransition(id, state, token.getType(), token);
+				for (SemanticAction sa : t.getActions())
+					sa.doAction(token);
 			}
+			
 			state = t.nextState;
 		}
-		if (isFinal(state)) return true;
-		else {
+		if (isFinal(state)) {
+			SubMachineReturnAction action = getReturnAction(state);
+			if (action == null) return true;
+			else return action.returnAction();
+		} else {
 			System.out.println("Syntax error: unexpected end of file.");
-			return false;
+			return null;
 		}
 	}
 	
 	private boolean isFinal(int state) {
-		return finalStates.contains(state);
+		return finalStates.containsKey(state);
 	}
-
-	public static class Transition {
-		int nextState;
-		SubMachine subMachine;
-		
-		public Transition(int nextState) {
-			this.nextState = nextState;
-		}
-		
-		public Transition(SubMachine subMachine, int nextState) {
-			this.subMachine = subMachine;
-			this.nextState = nextState;
-		}
-		
-		@Override
-		public String toString() {
-			return "(" + nextState + (subMachine != null ? ") " + subMachine.getId() : ")");
-		}
+	
+	private SubMachineReturnAction getReturnAction(int state) {
+		return finalStates.get(state);
 	}
 
 	public String getId() {
 		return id;
 	}
 	
-	@Override
 	public String toString() {
 		return id;
 	}

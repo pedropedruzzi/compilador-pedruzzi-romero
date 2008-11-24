@@ -1,7 +1,10 @@
 package br.usp.pcs.compiler.submachine;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,6 +12,14 @@ import br.usp.pcs.compiler.Lex;
 import br.usp.pcs.compiler.LexicalParser;
 import br.usp.pcs.compiler.Token;
 import br.usp.pcs.compiler.Token.TokenType;
+import br.usp.pcs.compiler.calculation.Calculation;
+import br.usp.pcs.compiler.symbol.CustomType;
+import br.usp.pcs.compiler.symbol.Symbol;
+import br.usp.pcs.compiler.symbol.type.Array;
+import br.usp.pcs.compiler.symbol.type.PrimitiveType;
+import br.usp.pcs.compiler.symbol.type.Record;
+import br.usp.pcs.compiler.symbol.type.SizedArray;
+import br.usp.pcs.compiler.symbol.type.Type;
 
 
 public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
@@ -32,16 +43,20 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 	}
 	
 	public void finalState(int num) {
+		finalState(num, null);
+	}
+	
+	public void finalState(int num, SubMachineReturnAction smra) {
 		if (num == 0) firstToken.get(currentMachine).add(VAZIO);
 	}
 	
-	public void transition(int state, String tokenType, int next) {
+	public void transition(int state, String tokenType, int next, SemanticAction ... sa) {
 		if (state == 0) {
 			firstToken.get(currentMachine).add(tokenType);
 		}
 	}
 	
-	public void subMachineCall(int state, String subMachineId, int next) {
+	public void subMachineCall(int state, String subMachineId, int next, SemanticAction ... sa) {
 		interested.add(subMachineId);
 		if (state == 0) {
 			firstSM.get(currentMachine).add(subMachineId);
@@ -73,12 +88,13 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException {
+		Teste t = new Teste();
 		ComputeFirstTokenSetInterpreter fti = new ComputeFirstTokenSetInterpreter();
-		inputData(fti);
+		inputData(fti, t);
 		System.out.println(fti.getFirstMap());
 		//System.exit(0);
 		SubMachineCreator smc = new SubMachineCreator(fti.getFirstMap());
-		inputData(smc);
+		inputData(smc, t);
 		SubMachine S = smc.getMainSubMachine();
 		
 		System.out.println(S.transitions);
@@ -87,59 +103,56 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		Lex lex = new LexicalParser("res/teste2.c");
 		//while (lex.hasToken()) System.out.println(lex.nextToken());
 		
-		System.out.println("resultados = " + S.execute(lex, new SemanticActionManager() {
-
-			@Override
-			public void processTransition(String subMachineId, int state, TokenType tokenType, Token token) {
-				
-			}
-			
-		}));
+		System.out.println("resultados = " + S.execute(lex));
 		
 		// compilation ok if there is no more tokens left
 		System.out.println(lex.hasToken());
 	}
 	
-	public static void inputData(SubMachineInterpreter i) {
+	public static void inputData(SubMachineInterpreter i, Teste t) {
 		int state;
 		
 		i.machine("programa");
 		i.finalState(0);
-		i.transition(0, "int", 1);
-		i.transition(0, "char", 1);
-		i.transition(1, "id", 2);
-		i.subMachineCall(2, "r_funcao", 0);
-		i.subMachineCall(2, "r_declaracao_variavel", 0);
+		i.transition(0, "int", 1, t.arraySize);
+		i.transition(0, "char", 1, t.start);
 		
-		i.transition(1, "[", 8);
-		i.transition(8, "constante", 10);
-		i.transition(8, "]", 11);
+		i.transition(1, "id", 2, t.setId, t.checkUnusedSymbol);
+		i.subMachineCall(2, "r_funcao", 0);
+		i.subMachineCall(2, "r_declaracao_variavel", 0, t.setVarType);
+		
+		i.transition(1, "[", 8); // variavel
+		i.transition(8, "constante", 10, t.arraySize);
+		i.transition(8, "]", 11, t.arraySize);
 		i.transition(10, "]", 11);
 		i.transition(11, "[", 9);
-		i.transition(9, "constante", 10);
-		i.transition(11, "id", 12);
-		i.subMachineCall(12, "r_declaracao_variavel", 0);
+		i.transition(9, "constante", 10, t.arraySize);
+		i.transition(11, "id", 12, t.setId, t.checkUnusedSymbol);
+		i.subMachineCall(12, "r_declaracao_variavel", 0, t.setVarType);
 		
-		i.transition(0, "void", 3);
-		i.transition(3, "id", 4);
+		i.transition(0, "void", 3, t.start);
+		i.transition(3, "id", 4, t.setId);
 		i.subMachineCall(4, "r_funcao", 0);
 		
-		i.transition(0, "type", 5);
-		i.transition(5, "id", 6);
-		i.subMachineCall(6, "r_declaracao_tipo", 0);
-		i.transition(6, "id", 7);
-		i.transition(6, "[", 8);
-		i.subMachineCall(7, "r_declaracao_variavel", 0);
+		i.transition(0, "type", 5, t.start);
+		i.transition(5, "id", 6, t.setTypeId);
+		
+		i.subMachineCall(6, "r_declaracao_tipo", 0, t.typeDefinition, t.checkUnusedSymbol); // definicao de tipo
+
+		i.transition(6, "[", 8, t.checkType); // variavel
+		
+		i.transition(6, "id", 7, t.checkType, t.setId); // variavel
+		i.subMachineCall(7, "r_declaracao_variavel", 0, t.setVarType);
 		
 		// r_declaracao_variavel = [ "=" expressao ] { "," id [ "=" expressao ] } ";" .
 		i.machine("r_declaracao_variavel");
-		i.transition(0, ";", 1);
+		i.transition(0, ";", 1, t.registerVariable);
 		i.transition(0, "=", 2);
-		i.transition(0, ",", 4);
-		i.subMachineCall(2, "expressao", 3);
-		i.transition(3, ";", 1);
-		i.transition(3, ",", 4);
-		i.transition(4, "id", 0);
+		i.transition(0, ",", 4, t.registerVariable);
+		i.subMachineCall(2, "expressao", 3, t.varInitializer);
+		i.transition(3, ";", 1, t.registerVariable);
+		i.transition(3, ",", 4, t.registerVariable);
+		i.transition(4, "id", 0, t.setId);
 		i.finalState(1);
 		
 		// declaracao_variavel = tipo id r_declaracao_variavel .
@@ -624,16 +637,160 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		
 	}
 	
-	private static class Teste implements SemanticActionManager {
+	private static class Teste {
 		
+		protected static final int UNKOWN_SIZE = -1;
 		private SymbolTable st;
+		private Type type;
+		
+		private Calculation offset;
+		private Symbol reference;
+		private Symbol symbol;
+		
+		private TokenType first;
+		private String id;
+		private String typeId;
+		
+		private Type varType;
+		
+		private List<Integer> arraySizes = new ArrayList<Integer>();
+		
+		private int initilizer;
+		
 
-		public void processTransition(String subMachineId, int state, TokenType tokenType, Token token) {
-			if (subMachineId.equals("r_lvalue")) {
-				switch (state) {
-				case 0:
+		public SemanticAction start = new SemanticActionWithToken() {
+			public void doAction(Token token) {
+				first = token.getType();
+				id = typeId = null;
+				arraySizes.clear();
+				// inicializa tudo
+			}
+		};
+		
+		public SemanticAction setId = new SemanticActionWithToken() {
+			public void doAction(Token token) {
+				id = (String) token.getValue();
+			}
+		};
+		
+		public SemanticAction checkUnusedSymbol = new SemanticAction() {
+			public void doAction(Object o) {
+				if (st.containsSymbol(id)) error("duplicated definition of symbol " + id);
+			}
+		};
+		
+		public SemanticAction typeDefinition = new SemanticAction() {
+			public void doAction(Object o) {
+				id = typeId;
+			}
+		};
+		
+		public SemanticAction setTypeId = new SemanticActionWithToken() {
+			public void doAction(Token token) {
+				typeId = (String) token.getValue();
+			}
+		};
+		
+		public SemanticAction checkType = new SemanticAction() {
+			public void doAction(Object o) {
+				if (!st.containsSymbol(typeId)) error("type is not defined");
+				Symbol t = st.getSymbol(typeId);
+				if (!(t instanceof CustomType)) error(typeId + " is not a type");
+				varType = ((CustomType) t).getDefinition();
+			}
+		};
+		
+		public SemanticAction setVarType = new SemanticAction() {
+			public void doAction(Object o) {
+				switch (first) {
+				case CHAR:
+					varType = PrimitiveType.charTypeInstance();
+					break;
+				case INT:
+					varType = PrimitiveType.intTypeInstance();
+					break;
+				case TYPE:
+					// already set in this case
+					break;
+				}
+				Collections.reverse(arraySizes);
+				for (int i : arraySizes) {
+					if (i == UNKOWN_SIZE) varType = new Array(varType);
+					else varType = new SizedArray(varType, i);
 				}
 			}
+		};
+		
+		public SemanticAction registerVariable = new SemanticAction() {
+			public void doAction(Object result) {
+				// TODO Auto-generated method stub
+			}
+		};
+		
+		public SemanticAction varInitializer = new SemanticAction() {
+			public void doAction(Object o) {
+				Calculation c = (Calculation) o;
+				if (!c.isConstant()) error("initializer is not constant");
+				initilizer = c.getValue();
+				// TODO: parei aki!!
+			}
+		};
+		
+		
+		
+		
+		
+		public SemanticAction arraySize = new SemanticActionWithToken() {
+			public void doAction(Token token) {
+				if (token.getType() == TokenType.INTEGER_LITERAL) {
+					int size = (Integer) token.getValue();
+					if (size <= 0) error(token, "array size must be positive");
+					arraySizes.add(size);
+				} else {
+					arraySizes.add(UNKOWN_SIZE);
+				}
+			}
+		};
+		
+		public SemanticAction checkAccess = new SemanticActionWithToken() {
+			public void doAction(Token t) {
+				switch (t.getType()) {
+				case DOT:
+					if (!(type instanceof Record)) error(t, "not a record");
+					break;
+				case SUBSCRIPT_OPEN:
+					if (!(type instanceof Array)) error(t, "not an array");
+					break;
+				}
+			}
+		};
+		
+		public SemanticAction accessArrayElement = new SemanticAction() {
+			public void doAction(Object obj) {
+				type = ((Array) type).getInnerType();
+				offset = Calculation.sum(offset, Calculation.multiply(type.sizeOf(), obj));
+			}	
+		};
+		
+		public SemanticAction accessRecordMember = new SemanticActionWithToken() {
+			public void doAction(Token token) {
+				Record r = (Record) type;
+				String id = (String) token.getValue();
+				
+				if (!r.containsField(id))
+					error(token, "field does not exist");
+				
+				type = r.getField(id).getType();
+				offset = Calculation.sum(offset, r.getOffset(id));
+			}
+		};
+
+		private void error(Token token, String text) {
+			error("error on token: " + token.toString() + ": " + text);
+		}
+
+		private void error(String text) {
+			throw new RuntimeException(text);
 		}
 		
 	}
