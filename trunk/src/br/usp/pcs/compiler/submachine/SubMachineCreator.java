@@ -1,11 +1,9 @@
 package br.usp.pcs.compiler.submachine;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import br.usp.pcs.compiler.Token.TokenType;
-import br.usp.pcs.compiler.submachine.SubMachine.Transition;
 
 
 public class SubMachineCreator implements SubMachineInterpreter {
@@ -24,7 +22,7 @@ public class SubMachineCreator implements SubMachineInterpreter {
 		if (main == null) main = current;
 		assert current.transitions == null;
 		current.transitions = new HashMap<Integer, Map<TokenType,Transition>>();
-		current.finalStates = new HashSet<Integer>();
+		current.finalStates = new HashMap<Integer, SubMachineReturnAction>();
 	}
 	
 	private SubMachine getOrCreateSubMachine(String id) {
@@ -37,11 +35,11 @@ public class SubMachineCreator implements SubMachineInterpreter {
 		return sm;
 	}
 
-	public void finalState(int num) {
-		current.finalStates.add(num);
+	public void finalState(int num, SubMachineReturnAction smra) {
+		current.finalStates.put(num, smra);
 	}
 
-	public void transition(int state, String tokenType, int next) {
+	public void transition(int state, String tokenType, int next, SemanticAction ... sa) {
 		TokenType tt = TokenType.getById(tokenType);
 		if (tt == null) {
 			throw new RuntimeException("unkown token class: " + tokenType);
@@ -55,10 +53,10 @@ public class SubMachineCreator implements SubMachineInterpreter {
 			map = current.transitions.get(state);
 			if (map.containsKey(tt)) throw new RuntimeException("duplicated transition. " + current.getId() + ":" + state + ":" + tt.toString());
 		}
-		map.put(tt, new Transition(next));
+		map.put(tt, new Transition(next, sa));
 	}
 
-	public void subMachineCall(int state, String subMachineId, int next) {
+	public void subMachineCall(int state, String subMachineId, int next, SemanticAction ... sa) {
 		SubMachine sm = getOrCreateSubMachine(subMachineId);
 		for (String s : first.get(subMachineId)) {
 			TokenType tt = TokenType.getById(s);
@@ -74,8 +72,12 @@ public class SubMachineCreator implements SubMachineInterpreter {
 				map = current.transitions.get(state);
 				if (map.containsKey(tt)) throw new RuntimeException("duplicated transition. " + current.getId() + ":" + state + ":" + tt.toString());
 			}
-			map.put(tt, new Transition(sm, next));
+			map.put(tt, new SubMachineCall(sm, next, sa));
 		}
+	}
+
+	public void finalState(int num) {
+		finalState(num, null);
 	}
 	
 	public void eof() {
