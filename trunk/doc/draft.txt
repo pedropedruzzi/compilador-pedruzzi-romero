@@ -203,3 +203,17 @@ int main() {
 
 
 -implementar autômato de pilha estruturado com programação dinâmica, a partir de uma descrição em arquivo.
+ok
+
+
+-modelo para executar ações semanticas
+ok
+
+-checagem de tipo:
+	-inicializador
+	-atribuição
+	-chamada de função (argumentos)
+	-retorno
+	
+	
+	

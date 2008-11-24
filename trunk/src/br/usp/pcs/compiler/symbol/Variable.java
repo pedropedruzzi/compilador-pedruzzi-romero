@@ -4,11 +4,14 @@ import br.usp.pcs.compiler.symbol.type.Type;
 
 public class Variable extends Symbol {
 
-	private final Type type;
+	protected final Type type;
+	protected int address;
+	
 
-	public Variable(String id, Type type) {
+	public Variable(String id, Type type, int address) {
 		super(id);
 		this.type = type;
+		this.address = address;
 	}
 
 }

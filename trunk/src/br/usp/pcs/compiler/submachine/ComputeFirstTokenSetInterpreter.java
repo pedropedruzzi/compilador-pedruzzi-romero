@@ -1,4 +1,5 @@
 package br.usp.pcs.compiler.submachine;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +16,7 @@ import br.usp.pcs.compiler.Token.TokenType;
 import br.usp.pcs.compiler.calculation.Calculation;
 import br.usp.pcs.compiler.symbol.CustomType;
 import br.usp.pcs.compiler.symbol.Symbol;
+import br.usp.pcs.compiler.symbol.Variable;
 import br.usp.pcs.compiler.symbol.type.Array;
 import br.usp.pcs.compiler.symbol.type.PrimitiveType;
 import br.usp.pcs.compiler.symbol.type.Record;
@@ -127,10 +129,10 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		i.transition(10, "]", 11);
 		i.transition(11, "[", 9);
 		i.transition(9, "constante", 10, t.arraySize);
-		i.transition(11, "id", 12, t.setId, t.checkUnusedSymbol);
-		i.subMachineCall(12, "r_declaracao_variavel", 0, t.setVarType);
+		i.transition(11, "id", 12, t.setVarType, t.setId, t.checkUnusedSymbol);
+		i.subMachineCall(12, "r_declaracao_variavel", 0);
 		
-		i.transition(0, "void", 3, t.start);
+		i.transition(0, "void", 3, t.start); //funcao
 		i.transition(3, "id", 4, t.setId);
 		i.subMachineCall(4, "r_funcao", 0);
 		
@@ -141,8 +143,8 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 
 		i.transition(6, "[", 8, t.checkType); // variavel
 		
-		i.transition(6, "id", 7, t.checkType, t.setId); // variavel
-		i.subMachineCall(7, "r_declaracao_variavel", 0, t.setVarType);
+		i.transition(6, "id", 7, t.checkType, t.setId, t.checkUnusedSymbol); // variavel
+		i.subMachineCall(7, "r_declaracao_variavel", 0);
 		
 		// r_declaracao_variavel = [ "=" expressao ] { "," id [ "=" expressao ] } ";" .
 		i.machine("r_declaracao_variavel");
@@ -656,6 +658,7 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		private List<Integer> arraySizes = new ArrayList<Integer>();
 		
 		private int initilizer;
+		private int freeAddress;
 		
 
 		public SemanticAction start = new SemanticActionWithToken() {
@@ -710,7 +713,7 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 					varType = PrimitiveType.intTypeInstance();
 					break;
 				case TYPE:
-					// already set in this case
+					// already set by checkType action
 					break;
 				}
 				Collections.reverse(arraySizes);
@@ -723,16 +726,20 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		
 		public SemanticAction registerVariable = new SemanticAction() {
 			public void doAction(Object result) {
-				// TODO Auto-generated method stub
+				// TODO: se tiver inicializador, precisa verificar o tipo.. e setar endereço OU valor
+				st.addSymbol(new Variable(id, varType, freeAddress));
 			}
 		};
 		
 		public SemanticAction varInitializer = new SemanticAction() {
 			public void doAction(Object o) {
+				// verificar se é constante e se o tipo é compatível
+				// os únicos casos possíveis são:
+				// int, char e char[]
 				Calculation c = (Calculation) o;
 				if (!c.isConstant()) error("initializer is not constant");
-				initilizer = c.getValue();
-				// TODO: parei aki!!
+				if (!Type.isCompatibleAssignment(varType, c.getType())) error("initializer type is not compatible");
+				initilizer = c.getValue(); // address or value
 			}
 		};
 		
