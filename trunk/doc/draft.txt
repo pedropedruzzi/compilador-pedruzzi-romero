@@ -216,4 +216,35 @@ ok
 	-retorno
 	
 	
-	
+dúvidas nos simbolos
+====================
+
+
+exemplo.. tenho uma variável:
+int[10] a;
+
+
+isso vai virar algo assim:
+a		$ =20
+
+se o nego quiser acessar um elemento, ex.: a[4].
+o endereço obviamente é a + 4*sizeof(int)
+
+como fica o código para este acesso?
+
+imagina que seja a[i]
+
+		LD i		; carrega o índice que está na memória
+		*  CONST_2	; multiplica por sizeof(int) == 2
+		+  a		; isso vai somar o valor na posição a... eu queria que somasse o endereço de a!
+conclusão: a merda da mvn não tem instrução para acessar as coisas! tenho que guardar ponteiros! ou seja: se eu tenho int[] var; var vai ser um ponteiro para o vetor na memória:
+
+
+
+__static_a		$	=20
+a				K	__static_a
+
+isto resolve também a passagem argumento para função.. passa sempre por valor.. e tipos complexos são ponteiros.. entao acabou.
+
+
+
