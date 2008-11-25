@@ -5,13 +5,16 @@ import br.usp.pcs.compiler.symbol.type.Type;
 public class Variable extends Symbol {
 
 	protected final Type type;
-	protected int address;
-	
+	protected final byte[] initial;
 
-	public Variable(String id, Type type, int address) {
+	public Variable(String id, Type type) {
+		this(id, type, null);
+	}
+
+	public Variable(String id, Type type, byte[] initial) {
 		super(id);
 		this.type = type;
-		this.address = address;
+		this.initial = initial;
 	}
 
 }

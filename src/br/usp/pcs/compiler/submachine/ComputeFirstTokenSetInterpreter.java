@@ -658,7 +658,6 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		private List<Integer> arraySizes = new ArrayList<Integer>();
 		
 		private int initilizer;
-		private int freeAddress;
 		
 
 		public SemanticAction start = new SemanticActionWithToken() {
@@ -727,15 +726,12 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		public SemanticAction registerVariable = new SemanticAction() {
 			public void doAction(Object result) {
 				// TODO: se tiver inicializador, precisa verificar o tipo.. e setar endereço OU valor
-				st.addSymbol(new Variable(id, varType, freeAddress));
+				st.addSymbol(new Variable(id, varType, null));
 			}
 		};
 		
 		public SemanticAction varInitializer = new SemanticAction() {
 			public void doAction(Object o) {
-				// verificar se é constante e se o tipo é compatível
-				// os únicos casos possíveis são:
-				// int, char e char[]
 				Calculation c = (Calculation) o;
 				if (!c.isConstant()) error("initializer is not constant");
 				if (!Type.isCompatibleAssignment(varType, c.getType())) error("initializer type is not compatible");
