@@ -65,7 +65,7 @@ A nossa implementação deve ter as seguintes características:
 Para atingir este objetivo excluímos referências (ponteiros) da linguagem.
 Toda declaração variável de tipo não-primitivo (array ou registro), é uma alocação estática. E esta referência é imutável (como em C).
 O principal efeito desta limitação é que não é possível recursão de registros (um registro não pode ter um elemento filho que seja do mesmo tipo), como é comum em listas ligadas.
-Mesmo com esta limitação a linguagem continua poderosa. No anexo A pode-se observar a implementação de uma lista ligada implementada na linguagem.
+Mesmo com esta limitação a linguagem continua poderosa. No anexo A (mandar o arquivo teste2.c) pode-se observar a implementação de uma lista ligada implementada na linguagem.
 
 2. Definição formal da linguagem
 2.1. Linguagem léxica
