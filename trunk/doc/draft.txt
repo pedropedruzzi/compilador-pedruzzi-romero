@@ -1,38 +1,8 @@
-Próximos passos:
 
--definir linguagem simplificada
-	retirar:
-	-union
-	-enum
-	-typedef
-	-ponteiros, operador ->
-	-short/long
-	-unsigned
-	-auto,register,static,volatile,const
-	-float/double
-	-operadores unários
-	-atribuições do tipo +=, -=, *= etc.
-	-bitfield
-	-do
-	-switch
-	-struct só para definir tipo
-    -constantes: somente inteiro decimal
-	
-	inicializadores:
-	-char[]: "blablabla" mantem
-	-vetor: {} FORA
-	-struct: { .field = 1 } FORA
-	
-	juntar todos os operadores num mesmo nível de prioridade (e forçar o uso de parênteses).
-	
-	o que sobrou:
-	
-	declaração:
-		-variável:
-		-função:
-		-tipo complexo (struct):
-	definição de função;
-    
+
+
+Rascunhão da sintaxe:
+
     programa = { declaracao_variavel | declaracao_funcao | declaracao_tipo | funcao } .
     declaracao_variavel = tipo_basico [ "[" "]" ] { "[" num "]" } id [ "=" inicializacao ] { "," id [ "=" inicializacao ] } ";" .
     tipo_basico = "int" | "char" | "type" id .
@@ -51,163 +21,67 @@ Próximos passos:
     chamada_funcao = id "(" [ expressao { "," expressao } ] ")" .
 		
 	falta só concluir expressao!
-    
-    definir direito o modelo de ponteiros (Java x C):
-        -não tem alocação dinâmica
-        -os ponteiros vão ficar disfarçados (sem o *, sem aritmética de ponteiro etc)
-        -pode reapontar as coisas com em Java?
-        -a sintaxe acima está assim:
-            declaração de um objeto complexo:
-            int[5][5][5] a;
-            como estou pensando no modelo de vetor do Java, o tipo deste objeto é apenas int[][][]. Mas a declaração acima já aloca memória da mesma forma que em java seria:
-            int[][][] a = new int[5][5][5];
-            e se eu quiser declarar apenas uma referência desde tipo? como do java:
-            int[][][] a;
-            ???
-            
-            os parametros de função e tipos de retorno já podem ser desta forma. O grande problema é que não quero ter ponteiros explicitos nem alocação dinâmica.
-            Em C: distinção forte entre referências a tipos complexos estáticas e dinâmicas. exemplo: int a[5][5]; e int (*b)[5];
-            Em Java: não há distinção pois tudo é ponteiro e dinâmico! mas como tem alocação dinâmica e gerenciamento de memória (coletor de lixo), beleza!
-            No nosso caso: não temos alocação dinâmica e não queremos ver os ponteiros! E além disso não tem pilha (tudo é estático mesmo).
-            
-            Possíveis soluções:
-            
-            1) inventar um pseudo new estático. Ex.:
-            // declaração de um ponteiro (que faz a = null;):
-            int[][] a;
-            // declaração de um vetor estático da memória:
-            int[][] b = static int[5][5];
-            // uma sintaxe mais coerente seria:
-            static int[5][5] b;
-            aí este b seria imutável, como em C.
-            
-            A mesma idéia teria que ser aplicada para struct's. Ex.:
-            // declaração de um ponteiro (que faz a = null;):
-            struct x a;
-            // declaração de um registro estático da memória:
-            static struct x b;
-            b imutável, como em C.
-            
-            Este seria o jeito mais completo. Sem tirar poder da linguagem. Mas dá um certo trabalho. 
-            
-            2) Restringir: Toda declaração de variável de tipo complexo é uma alocação estática. Estas variáveis são imutáveis.
-            Funções não retornam mais tipos complexos (por que não vai ter variável para atribuir!). Mas podem receber estas coisas como parâmetros (por referência), mas continuam imutáveis.
-            A sintaxe fica:
-            // declaração
-            int[2][3] a;
-            // ou inicializada:
-            int[][3] a = { { 1, 2, 3}, {2, 3, 4} };
-            // nas funções fica:
-            void func(int[][] a, char[] b);
-            
-            Este jeito a princípio parece mais simples mas estou com algumas dúvidas.
-            Se eu usar tipos complexos aninhados, ele vai querer alocar tudo de antemão. Não vai poder haver recursão de tipos, como numa lista ligada.
-            Daria pra implementar uma lista ligada de inteiros. Ver abaixo.
-            
-            
-            Romero optou pela opção 2! Tudo é estático. NADA de ponteiros!
 
-#include <stdio.h>
+Modelo de ponteiros (Java x C):
+	-não tem alocação dinâmica
+	-os ponteiros vão ficar disfarçados (sem o *, sem aritmética de ponteiro etc)
+	-pode reapontar as coisas com em Java?
+	-a sintaxe acima está assim:
+		declaração de um objeto complexo:
+		int[5][5][5] a;
+		como estou pensando no modelo de vetor do Java, o tipo deste objeto é apenas int[][][]. Mas a declaração acima já aloca memória da mesma forma que em java seria:
+		int[][][] a = new int[5][5][5];
+		e se eu quiser declarar apenas uma referência desde tipo? como do java:
+		int[][][] a;
+		???
+		
+		os parametros de função e tipos de retorno já podem ser desta forma. O grande problema é que não quero ter ponteiros explicitos nem alocação dinâmica.
+		Em C: distinção forte entre referências a tipos complexos estáticas e dinâmicas. exemplo: int a[5][5]; e int (*b)[5];
+		Em Java: não há distinção pois tudo é ponteiro e dinâmico! mas como tem alocação dinâmica e gerenciamento de memória (coletor de lixo), beleza!
+		No nosso caso: não temos alocação dinâmica e não queremos ver os ponteiros! E além disso não tem pilha (tudo é estático mesmo).
+		
+		Possíveis soluções:
+		
+		1) inventar um pseudo new estático. Ex.:
+		// declaração de um ponteiro (que faz a = null;):
+		int[][] a;
+		// declaração de um vetor estático da memória:
+		int[][] b = static int[5][5];
+		// uma sintaxe mais coerente seria:
+		static int[5][5] b;
+		aí este b seria imutável, como em C.
+		
+		A mesma idéia teria que ser aplicada para struct's. Ex.:
+		// declaração de um ponteiro (que faz a = null;):
+		struct x a;
+		// declaração de um registro estático da memória:
+		static struct x b;
+		b imutável, como em C.
+		
+		Este seria o jeito mais completo. Sem tirar poder da linguagem. Mas dá um certo trabalho. 
+		
+		2) Restringir: Toda declaração de variável de tipo complexo é uma alocação estática. Estas variáveis são imutáveis.
+		Funções não retornam mais tipos complexos (por que não vai ter variável para atribuir!). Mas podem receber estas coisas como parâmetros (por referência), mas continuam imutáveis.
+		A sintaxe fica:
+		// declaração
+		int[2][3] a;
+		// ou inicializada:
+		int[][3] a = { { 1, 2, 3}, {2, 3, 4} };
+		// nas funções fica:
+		void func(int[][] a, char[] b);
+		
+		Este jeito a princípio parece mais simples mas estou com algumas dúvidas.
+		Se eu usar tipos complexos aninhados, ele vai querer alocar tudo de antemão. Não vai poder haver recursão de tipos, como numa lista ligada.
+		Daria pra implementar uma lista ligada de inteiros. Ver abaixo.
+		
+		
+		Romero optou pela opção 2! Tudo é estático. NADA de ponteiros!
 
 
-int LIVRE = -2;
-int NENHUM = -1;
-
-type item {
-	int valor;
-	int proximo; /* itens livres tem proximo = LIVRE; */
-};
-
-type item[100] lista;
-int primeiro;
-
-void inicializa() {
-	int i;
-	for (i=0; i<100; i++) lista[i].proximo = LIVRE;
-	primeiro = NENHUM;
-}
-
-int proximo_livre() {
-	int i;
-	for (i=0; i<100; i++)
-		if (lista[i].proximo == LIVRE) return i;
-	
-	return NENHUM;
-}
-
-int ultimo() {
-	int i = primeiro;
-	if (primeiro == NENHUM) return NENHUM;
-	while (lista[i].proximo != NENHUM) i = lista[i].proximo;
-	return i;
-}
-
-void insere_no_fim(int valor) {
-	if (primeiro == NENHUM) {
-		primeiro = 0;
-		lista[0].valor = valor;
-		lista[0].proximo = NENHUM;
-	} else {
-		int livre = proximo_livre();
-		lista[ultimo()].proximo = livre;
-		lista[livre].valor = valor;
-		lista[livre].proximo = NENHUM;
-	}
-}
-
-void insere_na_ordem(int valor) {
-	if (primeiro == NENHUM) {
-		primeiro = 0;
-		lista[0].valor = valor;
-		lista[0].proximo = NENHUM;
-	} else if (valor < lista[primeiro].valor) {
-		int livre = proximo_livre();
-		lista[livre].valor = valor;
-		lista[livre].proximo = primeiro;
-		primeiro = livre;
-	} else {
-		int i = primeiro;
-		while (lista[i].proximo != NENHUM && lista[lista[i].proximo].valor < valor) i = lista[i].proximo;
-		int livre = proximo_livre();
-		lista[livre].valor = valor;
-		lista[livre].proximo = lista[i].proximo;
-		lista[i].proximo = livre;
-	}
-}
-
-void dump_lista() {
-	int i = primeiro;
-	while (i != NENHUM) {
-		printf("%d\n", lista[i].valor);
-		i = lista[i].proximo;
-	}
-}
-
-int main() {
-	inicializa();
-	insere_na_ordem(7);
-	insere_na_ordem(3);
-	insere_na_ordem(8);
-	insere_na_ordem(2);
-	insere_na_ordem(1);
-	insere_na_ordem(6);
-	insere_na_ordem(4);
-	insere_na_ordem(7);
-	insere_na_ordem(0);
-	dump_lista();
-	return 0;
-}
-
-	
-
-
-
--implementar autômato de pilha estruturado com programação dinâmica, a partir de uma descrição em arquivo.
-ok
-
-
--modelo para executar ações semanticas
-ok
+Foi implementado uma engine de autômato de pilha estruturado com programação dinâmica.
+Nos estados finais das submáquinas, pode-se adicionar uma ação semântica especial que retorna um objeto para a submáquina que fez a chamada.
+Nas transições por classe de átomos (tokens) pode-de adicionar uma ou mais ações semânticas que recebem o átomo como argumento.
+Nas chamadas de submáquinas pode-de adicionar uma ou mais ações semânticas que recebem o objeto de retorno da chamada como argumento.
 
 -checagem de tipo:
 	-inicializador

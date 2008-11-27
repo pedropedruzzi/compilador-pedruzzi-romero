@@ -1,0 +1,125 @@
+1. Definição da linguagem
+======================
+1.1. Inspiração e simplificações
+Nossa liguagem foi fortemente inspirada na linguagem C, mas com diversas simplificações.
+Os seguintes recursos foram retirados:
+	-union
+	-enum
+	-typedef
+	-ponteiros (* e operador ->)
+	-short/long
+	-signed/unsigned
+	-modificadores: auto,register,static,volatile,const
+	-float/double
+	-alguns operadores unários
+	-alguns operadores binários
+	-atribuições com operação (ex.: +=, -=, *= etc)
+	-bitfield em structs
+	-do
+	-switch
+    -constante do tipo char (ex.: 'a')
+	-cast
+	-inicializadores para array e struct
+	
+1.2. Operadores
+operadores unários: ! e -
+operadores binários: +, -, *, /, %, !=, ==, <, <=, >, >=, && e ||
+Só existe precedência dos operadores unários com relação aos binários. A avaliação é feita da esquerda para direita.
+1 + 2 * 3
+Este exemplo resultaria em 9 pois não há precedência, como em C. Para forçar outras ordem de avaliação utilize parênteses.
+1 + (2 * 3)
+
+1.3. Registro
+O keyword "type" é análogo ao keyword "struct" do C, com as simplificações citadas anteriormente: O único uso é a definição de um novo tipo:
+// definição
+type novo_tipo {
+	int numero;
+	char[10] texto;
+	type outro_tipo bar;
+};
+
+// declaração de variável
+type novo_tipo var;
+
+// uso
+x = var.numero;
+y = var.texto[4];
+
+1.4. Arrays
+A sintaxe para arrays, mudou um pouco em relação à linguagem C. Adotamos o estilo do Java:
+// declaração
+int[2][3][3] a;
+// uso
+a[1][2][2] = a[0][0][0];
+// argumento de função:
+int func(char[][3][3] a);
+// com inicializador não precisa do tamanho:
+char[] texto = "foo bar";
+// array de tipo
+
+1.5. Modelo de ponteiros
+A nossa implementação deve ter as seguintes características:
+-não tem alocação dinâmica
+-os ponteiros vão ficar disfarçados (sem o *, sem aritmética de ponteiro etc)
+
+Para atingir este objetivo excluímos referências (ponteiros) da linguagem.
+Toda declaração variável de tipo não-primitivo (array ou registro), é uma alocação estática. E esta referência é imutável (como em C).
+O principal efeito desta limitação é que não é possível recursão de registros (um registro não pode ter um elemento filho que seja do mesmo tipo), como é comum em listas ligadas.
+Mesmo com esta limitação a linguagem continua poderosa. No anexo A pode-se observar a implementação de uma lista ligada implementada na linguagem.
+
+2. Definição formal da linguagem
+2.1. Linguagem léxica
+Blablabla sobre a linguagem lexica.
+identificadores:
+regexp:
+[_A-Za-z][_A-Za-z0-9]*
+wirth:
+id = id_first { id_part } .
+id_first = "_" | "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" .
+id_part = id_first | "0" | "1" | ... | "9" .
+BNF:
+<id> ::= <id_first> <id_part>
+<id_first> ::= _ | A | B | ... | Z | a | b | ... | z
+<id_part> ::= ( <id_first> | 0 | 1 | ... | 9 ) <id_part> | VAZIO
+
+etc etc
+
+2.2. Sintaxe livre de contexto
+Com as definições informais da linguagem iremos definir sua sintaxe na notação de Wirth:
+
+programa = { declaracao_variavel | declaracao_funcao | declaracao_tipo | funcao } .
+declaracao_variavel = tipo id [ "=" expressao ] { "," id [ "=" expressao ] } ";" .
+tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
+prototipo_funcao = ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" .
+declaracao_funcao = prototipo_funcao ";" .
+declaracao_tipo = "type" id "{" tipo id ";" { tipo id ";" } "}" ";" .
+funcao = prototipo_funcao bloco .
+bloco = "{" { declaracao_variavel } { comando } "}" .
+comando = bloco | expressao ";" | if | while | for | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+if = "if" "(" expressao ")" comando [ "else" comando ] .
+for = "for" "(" expressao ";" expressao ";" expressao ")" comando .
+while = "while" "(" expressao ")" comando .
+
+acho que precisa passar para BNF também!
+
+2. Implementação
+
+2.1. Analisador léxico
+
+2.2. Reconhecedor sintático
+
+O reconhecimento sintático é feito utilizando autômato de pilha estruturado.
+
+2.2.1. Construção do autômato
+(colocar as coisas do documento sintaxe.txt, que explica como chegamos nas submáquinas a partir da sintaxe formal)
+
+2.2.2. Implementação
+
+Foi implementado uma engine de autômato de pilha estruturado com programação dinâmica.
+Nos estados finais das submáquinas, pode-se adicionar uma ação semântica especial que retorna um objeto para a submáquina que fez a chamada.
+Nas transições por classe de átomos (tokens) pode-de adicionar uma ou mais ações semânticas que recebem o átomo como argumento.
+Nas chamadas de submáquinas pode-de adicionar uma ou mais ações semânticas que recebem o objeto de retorno da chamada como argumento.
+
+2.3. Sintaxe sensível ao contexto, ações semânticas e geração de código
+
+shiiii marquinhos... olha o código, filhão! Ta tudo lah!
