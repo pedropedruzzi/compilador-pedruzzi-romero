@@ -1,10 +1,12 @@
 Sintaxe da linguagem em Wirth
 
 
+Idéia inicial:
+
 programa = { declaracao_variavel | declaracao_funcao | declaracao_tipo | funcao } .
-declaracao_variavel = "var" tipo id [ "=" expressao ] { "," id [ "=" expressao ] } ";" .
+declaracao_variavel = tipo id [ "=" expressao ] { "," id [ "=" expressao ] } ";" .
 tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
-prototipo_funcao = "func" ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" .
+prototipo_funcao = ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" .
 declaracao_funcao = prototipo_funcao ";" .
 declaracao_tipo = "type" id "{" tipo id ";" { tipo id ";" } "}" ";" .
 funcao = prototipo_funcao bloco .
@@ -13,8 +15,6 @@ comando = bloco | expressao ";" | if | while | for | "return" expressao ";" | "c
 if = "if" "(" expressao ")" comando [ "else" comando ] .
 for = "for" "(" expressao ";" expressao ";" expressao ")" comando .
 while = "while" "(" expressao ")" comando .
-
-
 
 
 Expressão:
@@ -28,10 +28,16 @@ e1 = e2 { op2 e2 } .
 e2 = { op1 } e3 .
 e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
 
-op1 = "!" | "~" | "-" .
-op2 = "+" | "-" | "*" | "/" | "%" | "==" | "<" | "<=" | ">" | ">=" | "&" | "&&" | "|" | "||" | "^" | ">>" | "<<" .
+op1 = "!" | "-" .
+op2 = "+" | "-" | "*" | "/" | "%" | "==" | "<" | "<=" | ">" | ">=" | "&&" | "||".
 
-final:
+simplificando:
+expressao = { lvalue "=" } { op1 } e3 { op2 { op1 } e3 } .
+
+juntando (sem tirar lvalue):
+expressao = { lvalue "=" } { op1 } ( lvalue | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( lvalue | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
+
+juntando tudo:
 expressao = { id { "[" expressao "]" | "." id } "=" } { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
 
 
@@ -52,140 +58,59 @@ comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "("
 
 3) elimina prototipo_funcao, e junta declaracao_funcao com funcao
 
-func = "func" ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
+func = ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
 
-Resultado)
+#################################
+Resultado (esta é a sintaxe final! precisa jogar pra BNF, oq é bem facinho):
 
 programa = { declaracao_variavel | declaracao_tipo | func } .
-declaracao_variavel = "var" tipo id [ "=" ( constante | string ) ] { "," id [ "=" ( constante | string ) ] } ";" .
+declaracao_variavel = tipo id [ "=" ( constante | string ) ] { "," id [ "=" ( constante | string ) ] } ";" .
 tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
 declaracao_tipo = "type" id "{" tipo id ";" { tipo id ";" } "}" ";" .
-func = "func" ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
+func = ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
 comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
-expressao = { id { "[" expressao "]" | "." id } "=" } { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
-
-
-
-inicializador e tamanho de array podem ser expressões constantes ?? por hora deixa constante mesmo! por que fica foda.. não dá pra fazer x = -1;
-
-
-
-Resolver a ambiguidade da expressao
-===================================
-
-1) está assim agora:
-expressao = { id { "[" expressao "]" | "." id } "=" } { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( id { "[" expressao "]" | "." id } | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
-
-2) mas veio daki:
-expressao = { lvalue "=" } e1 .
-e1 = e2 { op2 e2 } .
-e2 = { op1 } e3 .
-e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
-
-
-3) elimino e1:
-expressao = { lvalue "=" } e2 { op2 e2 } .
-e2 = { op1 } e3 .
-e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
-
-4) elimino e2:
-expressao = { lvalue "=" } { op1 } e3 { op2 { op1 } e3 } .
-e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
-
-5) o foda é que pode existir a seguinte construção:
-expressao = { lvalue "=" } lvalue { op2 { op1 } e3 } .
-
-por isso, quando expressao começa com lvalue, o reconheçedor precisa de um bom lookahead para saber onde está.
-
-6) vamos fazer o seguinte:
-e3 = lvalue | r .
-r = chamada_funcao | constante | "(" expressao ")" .
-
-7) elimino e3:
-expressao = { lvalue "=" } { op1 } ( lvalue | r ) { op2 { op1 } ( lvalue | r ) } .
-
-agora isolamos o caso problemático (aquele q começa com lvalue):
-expressao = x | y .
-
-x = lvalue [ "=" { lvalue "=" } { op1 } e3 ] { op2 { op1 } e3 } .
-y = ( op1 { op1 } e3 | r ) { op2 { op1 } e3 } .
-
-O fim é igualzinho. dá pra juntar..
-Mas atenção: lvalue e r (chamada_funcao) podem começar com id.
-
-expressao = ( lvalue [ "=" { lvalue "=" } { op1 } e3 ] | op1 { op1 } e3 | r ) { op2 { op1 } e3 } .
-
-8) utilizamos a seguinte substituição
-lvalue = id r_lvalue .
-chamada_funcao = id r_chamada_funcao .
-r = id r_chamada_funcao | constante | "(" expressao ")" .
-
-
-expressao = ( id r_lvalue [ "=" { lvalue "=" } { op1 } e3 ] | op1 { op1 } e3 | ( id r_chamada_funcao ) | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
-fatora id:
-********
-expressao = ( id ( r_chamada_funcao | r_lvalue [ "=" { lvalue "=" } { op1 } e3 ] ) | op1 { op1 } e3 | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
-********
-9) acho que matei! substituindo a galera:
-e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
+expressao = { lvalue "=" } { op1 } ( lvalue | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( lvalue | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
 lvalue = id { "[" expressao "]" | "." id } .
-chamada_funcao = id "(" [ expressao { "," expressao } ] ")" .
 
-e3 = ( id ( { "[" expressao "]" | "." id } | "(" [ expressao { "," expressao } ] ")" ) | constante | "(" expressao ")" ) .
+Porém existe não-determinismo em 'programa' e 'expressao'.
 
-expressao = ( id ( "(" [ expressao { "," expressao } ] ")" | { "[" expressao "]" | "." id } [ "=" { id { "[" expressao "]" | "." id } "=" } { op1 } e3 ] ) | op1 { op1 } e3 | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
+Para resolver este problema, construiu-se a submáquina de cada um destes não-terminais, e eliminou-se o não-determinismo manualmente.
 
-10) substituindo e3:
-
-expressao = ( id ( "(" [ expressao { "," expressao } ] ")" | { "[" expressao "]" | "." id } [ "=" { id { "[" expressao "]" | "." id } "=" } { op1 } ( id ( { "[" expressao "]" | "." id } | "(" [ expressao { "," expressao } ] ")" ) | constante | "(" expressao ")" ) ] ) | op1 { op1 } ( id ( { "[" expressao "]" | "." id } | "(" [ expressao { "," expressao } ] ")" ) | constante | "(" expressao ")" ) | constante | "(" expressao ")" ) { op2 { op1 } ( id ( { "[" expressao "]" | "." id } | "(" [ expressao { "," expressao } ] ")" ) | constante | "(" expressao ")" ) } .
-
-oh my!
-
-NADA deu certo! continua não-det. Tenho que fatorar o lvalue no e3!
-de novo:
-
-1) do passo 4 acima:
-expressao = { lvalue "=" } { op1 } e3 { op2 { op1 } e3 } .
-e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
-
-2) vamos separar em dois casos: e3 = lvalue | r .
-x = { lvalue "=" } { op1 } lvalue { op2 { op1 } e3 } .
-
-3) { op1 } = op1 { op1 } | vazio .
-x = ( { lvalue "=" } op1 { op1 } lvalue | lvalue { "=" lvalue } ) { op2 { op1 } e3 } .
-
-4) { lvalue "=" } = lvalue "=" { lvalue "=" } | vazio .
-x = ( lvalue "=" { lvalue "=" } op1 { op1 } lvalue | op1 { op1 } lvalue | lvalue { "=" lvalue } ) { op2 { op1 } e3 } .
-
-5) mas lvalue "=" { lvalue "=" } == lvalue { "=" lvalue } "="
-x = ( lvalue { "=" lvalue } "=" op1 { op1 } lvalue | op1 { op1 } lvalue | lvalue { "=" lvalue } ) { op2 { op1 } e3 } .
-
-6) fatorando lvalue:
-x = ( lvalue { "=" lvalue } [ "=" op1 { op1 } lvalue ] | op1 { op1 } lvalue) { op2 { op1 } e3 } .
-
-7) y (quando e3 -> r)
-y = { lvalue "=" } { op1 } r { op2 { op1 } e3 } .
-
-8) para tirar a ambiguidade, fatora o id:
-y = { id r_lvalue "=" } { op1 } ( id r_chamada_funcao | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
-
-9) { op1 } = op1 { op1 } | vazio .
-quando { op1 } -> vazio:
-y1 = { id r_lvalue "=" } ( id r_chamada_funcao | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
-
-10) a cadeia pode começar com id ou não:
-y1 = ( id ( r_chamada_funcao | { id r_lvalue "=" } id  ) | constante | "(" expressao ")" ) { op2 { op1 } e3 } .
+Neste processo, trechos de algumas outras submáquinas tiveram que ser fatorados para fora destas. Seguem as transformações feitas:
 
 
-ta com cara de que não vou chegar em lugar nenhum. a expressao x em 6, não dá pra fatorar o "=". e nesta última (10), não dá pra fatorar id.
 
-Acho que devo fazer o seguinte:
-pegar a expressao original, gerar o autômato não-determinístico... pensar nas ações semanticas.. e transformá-lo... Acho que a notação de wirth não consegue representar (de forma determinística) um autômato qualquer.
 
-vamos lá:
+André.. A partir daqui eu vou te falar as etapas que fiz.
 
+1) Peguei esta definição de expressão, coloquei os estados e gerei o automato (não-determinístico):
 expressao = 0 { 2 lvalue 3 "=" 2 } 2 { 4 op1 5 } 4 e3 6 { 7 op2 8 { 9 op1 10 } 9 e3 11 } 7 . 1
-e3 = lvalue | chamada_funcao | constante | "(" expressao ")" .
-lvalue = id { "[" expressao "]" | "." id } .
-chamada_funcao = id "(" [ expressao { "," expressao } ] ")" .
+Tirando as transições em vazio cheguei no autômato marcado com (1) nas folhas que eu vou te passar.
 
+Porém ele continua não-deterministico pq no estado inicial, recebendo um identificador, não dá pra saber se chama a submáquina e3 ou a lvalue.
+
+Para resolver isso eu fatorei o id do lvalue, com a seguinte transformação:
+lvalue = id [ r_lvalue ] .
+
+Construí a submáquina e3, com base na expressão:
+e3 = id [ r_lvalue ] | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" .
+pelo mesmo processo, tirando não-determinismo manualmente, cheguei na submaquina (2) das folhas.
+
+Substitui esta submáquina e3 na máquina de expressao e cheguei no autômato (3). Note que eu ainda uso a e3 nela, pois só substituí a chamada que estava dando "conflito". Apesar disto, na implementação eu substituí e3 em todas as instancias. Em (4) está a submáquina que corresponde ao "resto" do lvalue.
+
+
+2) Peguei a definição de programa:
+programa = { declaracao_variavel | declaracao_tipo | func } .
+
+fiz as seguintes substituições, fatorando os prefixos comuns:
+declaracao_variavel = tipo id r_declaracao_variavel .
+func = ( "int" | "char" | "void" ) id r_funcao .
+declaracao_tipo = "type" id r_declaracao_tipo .
+
+chegando em:
+programa = { ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } id r_declaracao_variavel | "type" id r_declaracao_tipo | ( "int" | "char" | "void" ) id r_funcao } .
+
+construí o autômato a partir desta expressao, e tirei os não determinismosm, obtendo o autômato (5).
+
+
+Acabaram os não determinismos!

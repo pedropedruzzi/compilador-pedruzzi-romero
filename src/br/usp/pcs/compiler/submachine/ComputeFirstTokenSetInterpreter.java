@@ -14,6 +14,7 @@ import br.usp.pcs.compiler.LexicalParser;
 import br.usp.pcs.compiler.Token;
 import br.usp.pcs.compiler.Token.TokenType;
 import br.usp.pcs.compiler.calculation.Calculation;
+import br.usp.pcs.compiler.memory.MemoryMap;
 import br.usp.pcs.compiler.symbol.CustomType;
 import br.usp.pcs.compiler.symbol.Symbol;
 import br.usp.pcs.compiler.symbol.Variable;
@@ -280,8 +281,10 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		
 
 		i.machine("expressao");
-		String[] op2 = { "+", "-", "*", "/", "%", "!=", "==", "<", "<=", ">", ">=", "&", "&&", "|", "||", "^", ">>", "<<" };
-		String[] op1 = { "!", "~", "-" };
+		// String[] op2 = { "+", "-", "*", "/", "%", "!=", "==", "<", "<=", ">", ">=", "&", "&&", "|", "||", "^", ">>", "<<" };
+		// String[] op1 = { "!", "~", "-" };
+		String[] op2 = { "+", "-", "*", "/", "%", "!=", "==", "<", "<=", ">", ">=", "&&", "||" };
+		String[] op1 = { "!", "-" };
 		
 		i.transition(0, "constante", 3);
 		i.transition(0, "string", 3);
@@ -545,8 +548,10 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		
 
 		i.machine("expressao");
-		String[] op2 = { "+", "-", "*", "/", "%", "!=", "==", "<", "<=", ">", ">=", "&", "&&", "|", "||", "^", ">>", "<<" };
-		String[] op1 = { "!", "~", "-" };
+		// String[] op2 = { "+", "-", "*", "/", "%", "!=", "==", "<", "<=", ">", ">=", "&", "&&", "|", "||", "^", ">>", "<<" };
+		// String[] op1 = { "!", "~", "-" };
+		String[] op2 = { "+", "-", "*", "/", "%", "!=", "==", "<", "<=", ">", ">=", "&&", "||" };
+		String[] op1 = { "!", "-" };
 		
 		i.transition(0, "constante", 3);
 		i.transition(0, "string", 3);
@@ -643,6 +648,7 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		
 		protected static final int UNKOWN_SIZE = -1;
 		private SymbolTable st;
+		private MemoryMap mm = new MemoryMap();
 		private Type type;
 		
 		private Calculation offset;
@@ -657,7 +663,7 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		
 		private List<Integer> arraySizes = new ArrayList<Integer>();
 		
-		private int initilizer;
+		private short initializer;
 		
 
 		public SemanticAction start = new SemanticActionWithToken() {
@@ -725,17 +731,18 @@ public class ComputeFirstTokenSetInterpreter implements SubMachineInterpreter {
 		
 		public SemanticAction registerVariable = new SemanticAction() {
 			public void doAction(Object result) {
-				// TODO: se tiver inicializador, precisa verificar o tipo.. e setar endereço OU valor
-				st.addSymbol(new Variable(id, varType, null));
+				// TODO: tratar caso de string!
+				st.addSymbol(new Variable(id, mm.allocVariable(id, initializer), varType));
 			}
 		};
 		
 		public SemanticAction varInitializer = new SemanticAction() {
 			public void doAction(Object o) {
 				Calculation c = (Calculation) o;
+				// tratar o caso de string!!
 				if (!c.isConstant()) error("initializer is not constant");
 				if (!Type.isCompatibleAssignment(varType, c.getType())) error("initializer type is not compatible");
-				initilizer = c.getValue(); // address or value
+				initializer = (short) c.getValue(); // address or value
 			}
 		};
 		

@@ -2,19 +2,17 @@ package br.usp.pcs.compiler.symbol;
 
 import br.usp.pcs.compiler.symbol.type.Type;
 
-public class Variable extends Symbol {
+public class Variable extends AssemblerSymbol {
 
 	protected final Type type;
-	protected final byte[] initial;
 
-	public Variable(String id, Type type) {
-		this(id, type, null);
-	}
-
-	public Variable(String id, Type type, byte[] initial) {
-		super(id);
+	public Variable(String id, String asmSymbol, Type type) {
+		super(id, asmSymbol);
 		this.type = type;
-		this.initial = initial;
+	}
+	
+	public Type getType() {
+		return type;
 	}
 
 }

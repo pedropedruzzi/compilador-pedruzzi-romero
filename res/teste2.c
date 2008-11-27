@@ -1,5 +1,5 @@
-int LIVRE = 0-2;
-int NENHUM = 0-1;
+int LIVRE = -2;
+int NENHUM = -1;
 
 type item {
 	int valor;

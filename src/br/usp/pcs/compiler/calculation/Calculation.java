@@ -9,8 +9,8 @@ public abstract class Calculation {
 		return new IntValueConstant(value);
 	}
 	
-	public static Calculation memoryReference(int address, Type type) {
-		return new MemoryReference(address, type);
+	public static Calculation memoryReference(String symbol, Type type) {
+		return new MemoryReference(symbol, type);
 	}
 
 	public static Calculation sum(Object o1, Object o2) {
@@ -54,11 +54,11 @@ public abstract class Calculation {
 	}
 	
 	private static class MemoryReference extends Calculation {
-		private final int address;
+		private final String symbol;
 		private final Type type;
 
-		public MemoryReference(int address, Type type) {
-			this.address = address;
+		public MemoryReference(String symbol, Type type) {
+			this.symbol = symbol;
 			this.type = type;
 		}
 
@@ -67,11 +67,11 @@ public abstract class Calculation {
 		}
 
 		public int getValue() {
-			return address;
+			throw new UnsupportedOperationException("not a constant");
 		}
 
 		public boolean isConstant() {
-			return true;
+			return false;
 		}
 	}
 	
