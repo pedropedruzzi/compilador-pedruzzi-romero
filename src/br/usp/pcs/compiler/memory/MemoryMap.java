@@ -1,15 +1,18 @@
 package br.usp.pcs.compiler.memory;
-import java.util.HashMap;
+import java.io.PrintStream;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import br.usp.pcs.compiler.memory.Instruction.Opcode;
 
 public class MemoryMap {
 
 	private final String PREFIX = "__";
 	private final String SUFIX = "_";
-	private final String SUFIX_DATA = "_data";
+	private final String PREFIX_DATA = "data_";
 	private int counter = 0;
 
-	private Map<String, Allocation> map = new HashMap<String, Allocation>();
+	private Map<String, Allocation> map = new LinkedHashMap<String, Allocation>();
 
 	private String nextFreeSymbol() {
 		return PREFIX + Integer.toString(counter++) + SUFIX;
@@ -27,31 +30,76 @@ public class MemoryMap {
 			throw new RuntimeException("name collision: " + symbol);
 	}
 
-	public String allocVariable(String id) {
-		return allocVariable(id, (short) 0);
+	public String allocVariable() {
+		return allocVariable(null, (short) 0);
 	}
 
-	public String allocArea(String id, int size) {
-		String symbol = nextFreeSymbol() + id;
-		String symbolData = symbol + SUFIX_DATA;
+	public String allocVariable(String tag) {
+		return allocVariable(tag, (short) 0);
+	}
+
+	public String allocPointer(String tag, String target) {
+		if (!map.containsKey(target)) throw new IllegalArgumentException("unkown target: " + target);
+		String symbol = nextFreeSymbol();
+		if (tag != null) symbol = symbol + tag;
 		checkSymbol(symbol);
-		checkSymbol(symbolData);
-		map.put(symbolData, new MemoryArea(size));
+		map.put(symbol, new PointerToSymbol(target));
+		return symbol;
+	}
+
+	public String allocPointedArea(String tag, int size) {
+		String symbol = nextFreeSymbol();
+		if (tag != null) symbol = symbol + tag;
+		String symbolData = allocArea(PREFIX_DATA + tag, size);
+		checkSymbol(symbol);
 		map.put(symbol, new PointerToSymbol(symbolData));
 		return symbol;
 	}
 
-	public String allocArea(String id, byte[] initial) {
-		String symbol = nextFreeSymbol() + id;
-		String symbolData = symbol + SUFIX_DATA;
+	public String allocPointedArea(String tag, byte[] initial) {
+		String symbol = nextFreeSymbol();
+		if (tag != null) symbol = symbol + tag;
+		String symbolData = allocArea(PREFIX_DATA + tag, initial);
 		checkSymbol(symbol);
-		checkSymbol(symbolData);
-		map.put(symbolData, new InitializedMemoryArea(initial));
 		map.put(symbol, new PointerToSymbol(symbolData));
 		return symbol;
+	}
+
+	public String allocArea(String tag, int size) {
+		String symbol = nextFreeSymbol();
+		if (tag != null) symbol = symbol + tag;
+		checkSymbol(symbol);
+		map.put(symbol, new MemoryArea(size));
+		return symbol;
+	}
+
+	public String allocArea(String tag, byte[] initial) {
+		String symbol = nextFreeSymbol();
+		if (tag != null) symbol = symbol + tag;
+		checkSymbol(symbol);
+		map.put(symbol, new InitializedMemoryArea(initial));
+		return symbol;
+	}
+
+	public String label() {
+		return label("label");
+	}
+
+	public String label(String tag) {
+		String symbol = nextFreeSymbol();
+		if (tag != null) symbol = symbol + tag;
+		checkSymbol(symbol);
+		map.put(symbol, new Label());
+		return symbol;
+	}
+	
+	public void generateCode(CodeBuffer cb) {
+		for (String label : map.keySet())
+			map.get(label).generateCode(label, cb);
 	}
 
 	private static abstract class Allocation {
+		public abstract void generateCode(String label, CodeBuffer cb);
 	}
 
 	private static class SimpleAllocation extends Allocation {
@@ -59,6 +107,10 @@ public class MemoryMap {
 
 		SimpleAllocation(short initial) {
 			this.initial = initial;
+		}
+
+		public void generateCode(String label, CodeBuffer cb) {
+			cb.addInstruction(new Instruction(label, Opcode.CONSTANT, initial));
 		}
 	}
 
@@ -68,6 +120,10 @@ public class MemoryMap {
 		public PointerToSymbol(String symbol) {
 			this.symbol = symbol;
 		}
+
+		public void generateCode(String label, CodeBuffer cb) {
+			cb.addInstruction(new Instruction(label, Opcode.CONSTANT, symbol));
+		}
 	}
 
 	private static class MemoryArea extends Allocation {
@@ -76,13 +132,29 @@ public class MemoryMap {
 		public MemoryArea(int size) {
 			this.size = size;
 		}
+
+		public void generateCode(String label, CodeBuffer cb) {
+			cb.addInstruction(new Instruction(label, Opcode.BLOCK, size));
+		}
 	}
 
 	private static class InitializedMemoryArea extends Allocation {
 		byte[] initial;
 
 		public InitializedMemoryArea(byte[] initial) {
+			if ((initial.length & 1) != 0) throw new IllegalArgumentException("only even-sized blocks allowed");
 			this.initial = initial;
+		}
+
+		public void generateCode(String label, CodeBuffer cb) {
+			cb.addInstruction(new Instruction(label, Opcode.CONSTANT, (initial[0] << 8) & (initial[1] & 0xff)));
+			for (int i = 2; i < initial.length; i += 2)
+				cb.addInstruction(new Instruction(Opcode.CONSTANT, (initial[i] << 8) & (initial[i+1] & 0xff)));
+		}
+	}
+
+	private static class Label extends Allocation {
+		public void generateCode(String label, CodeBuffer cb) {
 		}
 	}
 
