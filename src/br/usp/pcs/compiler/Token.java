@@ -46,6 +46,7 @@ public class Token {
 		VAR(true), FUNC(true);
 		
 		private static Set<String> keywords;
+		private boolean isOperand = false;
 		private String id;
 		
 		TokenType() {
@@ -54,6 +55,11 @@ public class Token {
 		
 		TokenType(String id) {
 			this.id = id;
+		}
+		
+		TokenType(String id, boolean isOperand) {
+			this.id = id;
+			this.isOperand = isOperand;
 		}
 		
 		TokenType(boolean keyword) {
@@ -72,6 +78,10 @@ public class Token {
 
 		public static TokenType getKeyword(String name) {
 			return TokenType.valueOf(name.toUpperCase());
+		}
+		
+		public boolean isOperand() {
+			return isOperand;
 		}
 		
 		public static TokenType getById(String id) {

@@ -7,75 +7,75 @@
 000c 0004		;			JP	__6_for1
 000e c000		;	__7_for2	HM	/0
 0010 b000		;			RS	__4_inicializa
-0012 0000		;	__9_proximo_livre	K	/0
+0012 0000		;	__8_proximo_livre	K	/0
 0014 c000		;			HM	/0
-0016 c000		;	__11_for1	HM	/0
-0018 1028		;			JZ	__12_for2
+0016 c000		;	__10_for1	HM	/0
+0018 1026		;			JZ	__11_for2
 001a c000		;			HM	/0
-001c 1024		;			JZ	__13_if1
+001c 1022		;			JZ	__12_if1
 001e c000		;			HM	/0
-0020 90ca		;			MM	__8_ret_proximo_livre
-0022 b012		;			RS	__9_proximo_livre
-0024 c000		;	__13_if1	HM	/0
-0026 0016		;			JP	__11_for1
-0028 c000		;	__12_for2	HM	/0
-002a 90ca		;			MM	__8_ret_proximo_livre
-002c b012		;			RS	__9_proximo_livre
-002e b012		;			RS	__9_proximo_livre
-0030 0000		;	__15_ultimo	K	/0
+0020 b012		;			RS	__8_proximo_livre
+0022 c000		;	__12_if1	HM	/0
+0024 0016		;			JP	__10_for1
+0026 c000		;	__11_for2	HM	/0
+0028 b012		;			RS	__8_proximo_livre
+002a b012		;			RS	__8_proximo_livre
+002c 0000		;	__13_ultimo	K	/0
+002e c000		;			HM	/0
+0030 1036		;			JZ	__15_if1
 0032 c000		;			HM	/0
-0034 103c		;			JZ	__17_if1
-0036 c000		;			HM	/0
-0038 90ce		;			MM	__14_ret_ultimo
-003a b030		;			RS	__15_ultimo
-003c c000		;	__17_if1	HM	/0
-003e 1044		;			JZ	__18_while2
-0040 c000		;			HM	/0
-0042 003c		;			JP	__17_if1
-0044 c000		;	__18_while2	HM	/0
-0046 90ce		;			MM	__14_ret_ultimo
-0048 b030		;			RS	__15_ultimo
-004a b030		;			RS	__15_ultimo
-004c 0000		;	__20_insere_no_fim	K	/0
+0034 b02c		;			RS	__13_ultimo
+0036 c000		;	__15_if1	HM	/0
+0038 103e		;			JZ	__16_while2
+003a c000		;			HM	/0
+003c 0036		;			JP	__15_if1
+003e c000		;	__16_while2	HM	/0
+0040 b02c		;			RS	__13_ultimo
+0042 b02c		;			RS	__13_ultimo
+0044 0000		;	__18_insere_no_fim	K	/0
+0046 c000		;			HM	/0
+0048 1052		;			JZ	__19_if1
+004a c000		;			HM	/0
+004c c000		;			HM	/0
 004e c000		;			HM	/0
-0050 105a		;			JZ	__21_if1
-0052 c000		;			HM	/0
+0050 0058		;			JP	__20_if2
+0052 c000		;	__19_if1	HM	/0
 0054 c000		;			HM	/0
 0056 c000		;			HM	/0
-0058 0060		;			JP	__22_if2
-005a c000		;	__21_if1	HM	/0
+0058 b044		;	__20_if2	RS	__18_insere_no_fim
+005a 0000		;	__23_insere_na_ordem	K	/0
 005c c000		;			HM	/0
-005e c000		;			HM	/0
-0060 b04c		;	__22_if2	RS	__20_insere_no_fim
-0062 0000		;	__25_insere_na_ordem	K	/0
+005e 1068		;			JZ	__24_if1
+0060 c000		;			HM	/0
+0062 c000		;			HM	/0
 0064 c000		;			HM	/0
-0066 1070		;			JZ	__26_if1
-0068 c000		;			HM	/0
-006a c000		;			HM	/0
+0066 0082		;			JP	__28_if2
+0068 c000		;	__24_if1	HM	/0
+006a 1074		;			JZ	__26_if1
 006c c000		;			HM	/0
-006e 008a		;			JP	__30_if2
-0070 c000		;	__26_if1	HM	/0
-0072 107c		;			JZ	__28_if1
-0074 c000		;			HM	/0
-0076 c000		;			HM	/0
+006e c000		;			HM	/0
+0070 c000		;			HM	/0
+0072 0082		;			JP	__28_if2
+0074 c000		;	__26_if1	HM	/0
+0076 107c		;			JZ	__31_while2
 0078 c000		;			HM	/0
-007a 008a		;			JP	__30_if2
-007c c000		;	__28_if1	HM	/0
-007e 1084		;			JZ	__33_while2
+007a 0074		;			JP	__26_if1
+007c c000		;	__31_while2	HM	/0
+007e c000		;			HM	/0
 0080 c000		;			HM	/0
-0082 007c		;			JP	__28_if1
-0084 c000		;	__33_while2	HM	/0
-0086 c000		;			HM	/0
-0088 c000		;			HM	/0
-008a b062		;	__30_if2	RS	__25_insere_na_ordem
-008c 0000		;	__34_dump_lista	K	/0
-008e c000		;	__36_while1	HM	/0
-0090 1098		;			JZ	__37_while2
-0092 c000		;			HM	/0
+0082 b05a		;	__28_if2	RS	__23_insere_na_ordem
+0084 0000		;	__32_dump_lista	K	/0
+0086 c000		;	__34_while1	HM	/0
+0088 1090		;			JZ	__35_while2
+008a c000		;			HM	/0
+008c c000		;			HM	/0
+008e 0086		;			JP	__34_while1
+0090 b084		;	__35_while2	RS	__32_dump_lista
+0092 0000		;	__36_main	K	/0
 0094 c000		;			HM	/0
-0096 008e		;			JP	__36_while1
-0098 b08c		;	__37_while2	RS	__34_dump_lista
-009a 0000		;	__39_main	K	/0
+0096 c000		;			HM	/0
+0098 c000		;			HM	/0
+009a c000		;			HM	/0
 009c c000		;			HM	/0
 009e c000		;			HM	/0
 00a0 c000		;			HM	/0
@@ -84,31 +84,23 @@
 00a6 c000		;			HM	/0
 00a8 c000		;			HM	/0
 00aa c000		;			HM	/0
-00ac c000		;			HM	/0
-00ae c000		;			HM	/0
-00b0 c000		;			HM	/0
+00ac b092		;			RS	__36_main
+00ae b092		;			RS	__36_main
+00b0 0000		;	__37_teste	K	/0
 00b2 c000		;			HM	/0
-00b4 90e0		;			MM	__38_ret_main
-00b6 b09a		;			RS	__39_main
-00b8 b09a		;			RS	__39_main
-00ba 0000		;	__40_teste	K	/0
-00bc c000		;			HM	/0
-00be b0ba		;			RS	__40_teste
-00c0 0000		;	__0_LIVRE	K	/0
-00c2 0000		;	__1_NENHUM	K	/0
-00c4 0000		;	__2_lista	K	/0
-00c6 0000		;	__3_primeiro	K	/0
-00c8 0000		;	__5_i	K	/0
-00ca 0000		;	__8_ret_proximo_livre	K	/0
-00cc 0000		;	__10_i	K	/0
-00ce 0000		;	__14_ret_ultimo	K	/0
-00d0 0000		;	__16_i	K	/0
-00d2 0000		;	__19_insere_no_fim_valor	K	/0
-00d4 0000		;	__23_livre	K	/0
-00d6 0000		;	__24_insere_na_ordem_valor	K	/0
-00d8 0000		;	__29_livre	K	/0
-00da 0000		;	__31_i	K	/0
-00dc 0000		;	__32_livre	K	/0
-00de 0000		;	__35_i	K	/0
-00e0 0000		;	__38_ret_main	K	/0
-00e2 0000		;	__41_a	K	/0
+00b4 b0b0		;			RS	__37_teste
+00b6 0000		;	__0_LIVRE	K	/0
+00b8 0000		;	__1_NENHUM	K	/0
+00ba 0000		;	__2_lista	K	/0
+00bc 0000		;	__3_primeiro	K	/0
+00be 0000		;	__5_i	K	/0
+00c0 0000		;	__9_i	K	/0
+00c2 0000		;	__14_i	K	/0
+00c4 0000		;	__17_insere_no_fim_valor	K	/0
+00c6 0000		;	__21_livre	K	/0
+00c8 0000		;	__22_insere_na_ordem_valor	K	/0
+00ca 0000		;	__27_livre	K	/0
+00cc 0000		;	__29_i	K	/0
+00ce 0000		;	__30_livre	K	/0
+00d0 0000		;	__33_i	K	/0
+00d2 0000		;	__38_a	K	/0

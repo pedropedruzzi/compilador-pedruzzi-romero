@@ -1,5 +1,5 @@
 package br.usp.pcs.compiler.memory;
-import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -13,6 +13,7 @@ public class MemoryMap {
 	private int counter = 0;
 
 	private Map<String, Allocation> map = new LinkedHashMap<String, Allocation>();
+	private Map<String, String> pointers = new HashMap<String, String>();
 
 	private String nextFreeSymbol() {
 		return PREFIX + Integer.toString(counter++) + SUFIX;
@@ -39,11 +40,17 @@ public class MemoryMap {
 	}
 
 	public String allocPointer(String tag, String target) {
-		if (!map.containsKey(target)) throw new IllegalArgumentException("unkown target: " + target);
-		String symbol = nextFreeSymbol();
-		if (tag != null) symbol = symbol + tag;
-		checkSymbol(symbol);
-		map.put(symbol, new PointerToSymbol(target));
+		String symbol = null;
+		if (pointers.containsKey(target)) {
+			symbol = pointers.get(target);
+		} else {
+			if (!map.containsKey(target)) throw new IllegalArgumentException("unkown target: " + target);
+			symbol = nextFreeSymbol();
+			if (tag != null) symbol = symbol + tag;
+			checkSymbol(symbol);
+			map.put(symbol, new PointerToSymbol(target));
+			pointers.put(target, symbol);
+		}
 		return symbol;
 	}
 

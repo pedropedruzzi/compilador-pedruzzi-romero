@@ -1,18 +1,20 @@
 package br.usp.pcs.compiler.entity;
 
+import br.usp.pcs.compiler.entity.type.Type;
+
 public class Function extends AddressableEntity {
 	
-	private Variable result;
+	private Type returnType;
 	private Variable[] arguments;
 
-	public Function(String address, Variable result, Variable[] arguments) {
+	public Function(String address, Type returnType, Variable[] arguments) {
 		super(address);
-		this.result = result;
+		this.returnType = returnType;
 		this.arguments = arguments;
 	}
 	
-	public Variable getResult() {
-		return result;
+	public Type getReturnType() {
+		return returnType;
 	}
 	
 	public Variable[] getArguments() {
