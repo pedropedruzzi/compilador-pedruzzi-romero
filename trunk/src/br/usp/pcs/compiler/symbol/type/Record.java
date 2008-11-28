@@ -1,4 +1,4 @@
-package br.usp.pcs.compiler.symbol.type;
+package br.usp.pcs.compiler.entity.type;
 
 import java.util.Map;
 
@@ -43,6 +43,16 @@ public class Record extends Type {
 			this.field = field;
 			this.offset = offset;
 		}
+	}
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\n");
+		for (Field f : fields) {
+			sb.append("\t" + f.getId() + " " + f.getType().toString() + "\n");
+		}
+		sb.append("}");
+		return sb.toString();
 	}
 
 }

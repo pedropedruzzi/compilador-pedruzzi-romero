@@ -1,4 +1,4 @@
-package br.usp.pcs.compiler.symbol.type;
+package br.usp.pcs.compiler.entity.type;
 
 public class Array extends Type {
 	
@@ -14,6 +14,10 @@ public class Array extends Type {
 	
 	public int sizeOf() {
 		throw new RuntimeException("unkown array size!");
+	}
+	
+	public String toString() {
+		return "[]" + innerType.toString();
 	}
 
 }

@@ -1,10 +1,14 @@
-package br.usp.pcs.compiler.symbol.type;
+package br.usp.pcs.compiler.entity.type;
 
 public abstract class Type {
 
 	public static final int UNKOWN_SIZE = -1;
 
 	public abstract int sizeOf();
+
+	public static boolean isCompatibleMathOperation(Type t1, Type t2) {
+		return isCompatibleAssignment(t1, t2);
+	}
 
 	public static boolean isCompatibleAssignment(Type t1, Type t2) {
 		return t1 == t2 && t1 instanceof PrimitiveType;

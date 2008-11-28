@@ -85,3 +85,8 @@ int main() {
 	dump_lista();
 	return 0;
 }
+
+void teste() {
+	int a;
+	a = f(5) + 1;
+}

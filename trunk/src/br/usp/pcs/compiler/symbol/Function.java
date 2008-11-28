@@ -1,24 +1,22 @@
-package br.usp.pcs.compiler.symbol;
+package br.usp.pcs.compiler.entity;
 
-import br.usp.pcs.compiler.symbol.type.Type;
-
-public class Function extends AssemblerSymbol {
+public class Function extends AddressableEntity {
 	
-	private Type returnType;
-	private Type[] argumentType;
+	private Variable result;
+	private Variable[] arguments;
 
-	public Function(String id, String asmSymbol, Type returnType, Type ... argumentType) {
-		super(id, asmSymbol);
-		this.returnType = returnType;
-		this.argumentType = argumentType;
+	public Function(String address, Variable result, Variable[] arguments) {
+		super(address);
+		this.result = result;
+		this.arguments = arguments;
 	}
 	
-	public Type getReturnType() {
-		return returnType;
+	public Variable getResult() {
+		return result;
 	}
 	
-	public Type[] getArgumentType() {
-		return argumentType;
+	public Variable[] getArguments() {
+		return arguments;
 	}
 	
 }

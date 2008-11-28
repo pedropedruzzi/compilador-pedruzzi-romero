@@ -1,13 +1,12 @@
-package br.usp.pcs.compiler.symbol;
+package br.usp.pcs.compiler.entity;
 
-import br.usp.pcs.compiler.symbol.type.Type;
+import br.usp.pcs.compiler.entity.type.Type;
 
-public class CustomType extends Symbol {
+public class CustomType extends Entity {
 	
 	protected Type definition;
 
-	public CustomType(String id, Type definition) {
-		super(id);
+	public CustomType(Type definition) {
 		this.definition = definition;
 	}
 	

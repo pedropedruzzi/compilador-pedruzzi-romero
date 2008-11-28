@@ -1,13 +1,13 @@
-package br.usp.pcs.compiler.symbol;
+package br.usp.pcs.compiler.entity;
 
-import br.usp.pcs.compiler.symbol.type.Type;
+import br.usp.pcs.compiler.entity.type.Type;
 
-public class Variable extends AssemblerSymbol {
+public class Variable extends AddressableEntity {
 
 	protected final Type type;
 
-	public Variable(String id, String asmSymbol, Type type) {
-		super(id, asmSymbol);
+	public Variable(String address, Type type) {
+		super(address);
 		this.type = type;
 	}
 	

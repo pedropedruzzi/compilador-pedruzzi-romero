@@ -1,4 +1,4 @@
-package br.usp.pcs.compiler.symbol.type;
+package br.usp.pcs.compiler.entity.type;
 
 public class SizedArray extends Array {
 	
@@ -19,6 +19,10 @@ public class SizedArray extends Array {
 			size = length * innerType.sizeOf();
 		}
 		return size;
+	}
+	
+	public String toString() {
+		return "[" + Integer.toString(length) + "]" + innerType.toString();
 	}
 
 }

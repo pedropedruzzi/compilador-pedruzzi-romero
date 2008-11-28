@@ -22,7 +22,7 @@ public class SubMachine {
 		int state = 0;
 		while (lex.hasToken()) {
 			Token token = lex.nextToken();
-			System.out.println(id + ": " + ": (" + state + ") " + token.toString());
+			// System.out.println(id + ": " + ": (" + state + ") " + token.toString());
 			
 			Transition t = null;
 			if (transitions.containsKey(state))
