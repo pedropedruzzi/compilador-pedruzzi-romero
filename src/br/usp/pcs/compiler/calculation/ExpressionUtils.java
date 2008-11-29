@@ -24,14 +24,12 @@ public class ExpressionUtils {
 			return new TypedCalculation(c, type);
 	}
 
-	/*
 	public static Expression subtract(Expression e1, Expression e2) {
 		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
 			throw new CompilationException("incompatible types");
 		return new TypedCalculation(CalculationUtils.subtract(e1, e2), e1.getType());
 	}
-	*/
-	
+
 	public static Expression multiply(Expression e1, Expression e2) {
 		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
 			throw new CompilationException("incompatible types");

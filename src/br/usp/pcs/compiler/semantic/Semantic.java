@@ -376,12 +376,16 @@ public class Semantic {
 			case PLUS:
 				expression.current = ExpressionUtils.add(expression.previous, expression.current);
 				break;
+			case MINUS:
+				expression.current = ExpressionUtils.subtract(expression.previous, expression.current);
+				break;
 			case MULTIPLICATION:
 				expression.current = ExpressionUtils.multiply(expression.previous, expression.current);
 				break;
 			default:
 				// TODO: implementar o resto da galera e deixar a exceção:
 				// throw new RuntimeException("unexpected binary operator: " + expression.op2.toString());
+				System.out.println("unexpected binary operator: " + expression.op2.toString());
 				expression.current = ExpressionUtils.add(expression.previous, expression.current);
 			}
 		}
