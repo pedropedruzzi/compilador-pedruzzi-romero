@@ -17,6 +17,10 @@ public class GlobalScope implements Scope {
 	public GlobalScope getParent() {
 		return null;
 	}
+
+	public boolean isGlobal() {
+		return true;
+	}
 	
 	public boolean containsSymbol(String symbol) {
 		return containsVariable(symbol) || containsCustomType(symbol) || containsFunction(symbol);

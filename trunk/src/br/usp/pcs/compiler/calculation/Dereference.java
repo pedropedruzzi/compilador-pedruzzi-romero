@@ -7,7 +7,7 @@ import br.usp.pcs.compiler.memory.Instruction.Opcode;
 
 public class Dereference implements Expression {
 
-	private final int LOAD = 0x8000;
+	private final short LOAD = (short) 0x8000;
 	private final LValue lvalue;
 
 	public Dereference(LValue lvalue) {

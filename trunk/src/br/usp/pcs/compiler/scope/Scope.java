@@ -8,6 +8,7 @@ import br.usp.pcs.compiler.entity.Variable;
 public interface Scope {
 	
 	public Scope getParent();
+	public boolean isGlobal();
 	
 	public boolean containsSymbol(String symbol);
 	public void registerSymbol(String symbol, Entity e);

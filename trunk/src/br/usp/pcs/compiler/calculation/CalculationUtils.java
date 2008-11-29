@@ -19,9 +19,9 @@ public class CalculationUtils {
 		}
 		
 		public void evaluate(CompilationUnit cu) {
-			if (value >> 12 == 0) {
+			if (Instruction.fits12Bits(value)) {
 				cu.cb.addInstruction(new Instruction(Opcode.LOAD_VALUE, value));
-			} else if (value >> 16 == 0) {
+			} else if (Instruction.fits16Bits(value)) {
 				String c = cu.vm.getConstant(value);
 				cu.cb.addInstruction(new Instruction(Opcode.LOAD, c));
 			} else {
@@ -30,19 +30,32 @@ public class CalculationUtils {
 		}
 	}
 	
+	// evaluate the address of a label
 	static class MemoryAddress implements Calculation {
 		private final String address;
-		
 		public MemoryAddress(String address) {
 			this.address = address;
 		}
-		
 		public String getAddress() {
 			return address;
 		}
-		
 		public void evaluate(CompilationUnit cu) {
-			throw new UnsupportedOperationException("hard to do that!");
+			String pointer = cu.mm.allocPointer("p", address);
+			cu.cb.addInstruction(new Instruction(Opcode.LOAD, pointer));
+		}
+	}
+	
+	// evaluate the memory contents under a label
+	static class MemoryReference implements Calculation {
+		private final String address;
+		public MemoryReference(String address) {
+			this.address = address;
+		}
+		public String getAddress() {
+			return address;
+		}
+		public void evaluate(CompilationUnit cu) {
+			cu.cb.addInstruction(new Instruction(Opcode.LOAD, address));
 		}
 	}
 	
@@ -182,9 +195,62 @@ public class CalculationUtils {
 		
 		return new MultiplyOperation(c1, c2);
 	}
+	
+	public static class InverseOperation implements Calculation {
+		private final Calculation c;
+		public InverseOperation(Calculation c) {
+			this.c = c;
+		}
+		public void evaluate(CompilationUnit cu) {
+			c.evaluate(cu);
+			String tmp = cu.vm.takeTemporary();
+			cu.cb.addInstruction(new Instruction(Opcode.STORE, tmp));
+			constant(0).evaluate(cu);
+			cu.cb.addInstruction(new Instruction(Opcode.SUBTRACT, tmp));
+			cu.vm.returnTemporary(tmp);
+		}
+	}
+	
+	public static class NotOperation implements Calculation {
+		private final Calculation c;
+		public NotOperation(Calculation c) {
+			this.c = c;
+		}
+		public void evaluate(CompilationUnit cu) {
+			c.evaluate(cu);
+			String l1 = cu.mm.label("not1");
+			cu.cb.addInstruction(new Instruction(Opcode.JZ, l1));
+			constant(0).evaluate(cu);
+			String l2 = cu.mm.label("not2");
+			cu.cb.addInstruction(new Instruction(Opcode.JP, l2));
+			cu.cb.setNextLabel(l1);
+			constant(1).evaluate(cu);
+			cu.cb.setNextLabel(l2);
+		}
+	}
+	
+	public static Calculation inverse(Calculation c) {
+		if (isConstant(c)) {
+			return new Constant(-getValue(c));
+		}
+		
+		return new InverseOperation(c);
+	}
+	
+	public static Calculation not(Calculation c) {
+		if (isConstant(c)) {
+			return new Constant((getValue(c) != 0) ? 1 : 0);
+		}
+		
+		return new NotOperation(c);
+	}
 
 	public static Calculation memoryAddress(String address) {
 		return new MemoryAddress(address);
+	}
+
+	public static Calculation memoryReference(String address) {
+		return new MemoryReference(address);
 	}
 
 	public static Calculation constant(int value) {

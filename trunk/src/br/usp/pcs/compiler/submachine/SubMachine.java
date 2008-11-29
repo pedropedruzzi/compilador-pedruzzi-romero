@@ -11,7 +11,8 @@ import br.usp.pcs.compiler.Token.TokenType;
 public class SubMachine {
 	
 	private String id;
-	
+
+	private static final boolean DEBUG = false;
 	Map<Integer, Map<TokenType, Transition>> transitions;
 	Map<Integer, SubMachineReturnAction> finalStates;
 	
@@ -25,7 +26,7 @@ public class SubMachine {
 		try {
 			while (lex.hasToken()) {
 				token = lex.nextToken();
-				// System.out.println(id + ": " + ": (" + state + ") " + token.toString());
+				if (DEBUG) System.out.println(id + ": " + ": (" + state + ") " + token.toString());
 				
 				Transition t = null;
 				if (transitions.containsKey(state))

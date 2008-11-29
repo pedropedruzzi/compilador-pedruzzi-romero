@@ -28,9 +28,9 @@ public class LValue implements Expression {
 	
 	public void accessArrayElement(Expression e) {
 		if (!(type instanceof Array))
-			throw new CompilationException("not an array");
+			throw new CompilationException(type.toString() + "is not an array type");
 		if (!(e.getType() instanceof IntType))
-			throw new CompilationException("array index must be an integer");
+			throw new CompilationException("array index must be an integer " + e.getType());
 		type = ((Array) type).getInnerType();
 		products.add(CalculationUtils.multiply(CalculationUtils.constant(type.sizeOf()), e));
 	}
@@ -55,8 +55,9 @@ public class LValue implements Expression {
 	}
 	
 	public void evaluate(CompilationUnit cu) {
+		String pVar = cu.mm.allocPointer("p", var.getAddress());
 		CalculationUtils.constant(offset).evaluate(cu);
-		cu.cb.addInstruction(new Instruction(Opcode.ADD, var.getAddress()));
+		cu.cb.addInstruction(new Instruction(Opcode.ADD, pVar));
 		String tmp = cu.vm.takeTemporary();
 		for (Calculation c : products) {
 			cu.cb.addInstruction(new Instruction(Opcode.STORE, tmp));
@@ -64,6 +65,14 @@ public class LValue implements Expression {
 			cu.cb.addInstruction(new Instruction(Opcode.ADD, tmp));
 		}
 		cu.vm.returnTemporary(tmp);
+	}
+	
+	public boolean isSimple() {
+		return offset == 0 && products.isEmpty();
+	}
+	
+	public String getBaseAddress() {
+		return var.getAddress();
 	}
 
 }

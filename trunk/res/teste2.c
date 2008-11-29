@@ -1,3 +1,7 @@
+/**
+ *	Este programa implementa uma lista ligada na linguagem!
+ */
+
 int LIVRE = -2;
 int NENHUM = -1;
 
@@ -63,6 +67,9 @@ void insere_na_ordem(int valor) {
 	}
 }
 
+void printf(char[] texto, int valor) {
+}
+
 void dump_lista() {
 	int i = primeiro;
 	while (i != NENHUM) {
@@ -71,6 +78,7 @@ void dump_lista() {
 	}
 }
 
+// BLAA
 int main() {
 	inicializa();
 	insere_na_ordem(7);
@@ -84,9 +92,4 @@ int main() {
 	insere_na_ordem(0);
 	dump_lista();
 	return 0;
-}
-
-void teste() {
-	int a;
-	a = f(5) + 1;
 }

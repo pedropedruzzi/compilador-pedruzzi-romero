@@ -29,17 +29,26 @@ public class Instruction {
 	}
 	
 	private String format(int i) {
-		if (tooBig(i)) throw new IllegalArgumentException("operand is too big");
-		return '/' + Integer.toHexString(i);
+		if (tooBig(i)) throw new IllegalArgumentException("operand is too big: " + i);
+		String str = Integer.toHexString(i);
+		if (str.length() > 4) str = str.substring(str.length() - 4, str.length()).toUpperCase();
+		return '/' + str;
 	}
 	
 	private boolean tooBig(int i) {
-		if (opcode.isPseudo()) {
-			if (i != (i & 0xffff)) return true;
-		} else {
-			if (i != (i & 0xfff)) return true;
-		}
-		return false;
+		if (opcode.isPseudo()) return !fits16Bits(i);
+		else return !fits12Bits(i);
+	}
+	
+	public static boolean fits16Bits(int i) {
+		short s = (short) i;
+		if (s != i) return false;
+		return true;
+	}
+	
+	public static boolean fits12Bits(int i) {
+		if (((i & 0xf000) == 0xf000) || ((i & 0xf000) == 0)) return true;
+		else return false;
 	}
 	
 	public String getLabel() {

@@ -13,6 +13,7 @@ import br.usp.pcs.compiler.submachine.SubMachineInterpreter;
 
 public class Main {
 	
+	private static final boolean DEBUG = false;
 	private SubMachine S;
 	private CompilationUnit cu = new CompilationUnit();
 	private Semantic semantic = new Semantic(cu);
@@ -25,21 +26,32 @@ public class Main {
 		ComputeFirstTokenSetInterpreter fti = new ComputeFirstTokenSetInterpreter();
 		inputData(fti);
 		
-		// dump first
-		System.out.println(fti.getFirstMap());
+		if (DEBUG) {
+			System.out.println("FIRST:");
+			System.out.println(fti.getFirstMap());
+		}
 		
 		SubMachineCreator smc = new SubMachineCreator(fti.getFirstMap());
 		inputData(smc);
 		S = smc.getMainSubMachine();
 		
-		// dump transitions
-		S.dumpTransitions();
+		if (DEBUG) {
+			System.out.println("Transitions:");
+			S.dumpTransitions();
+		}
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {
 		Main main = new Main();
-		main.compile("res/teste2.c", "out/teste2.asm");
-		main.assembly("out/teste2.asm", "out/teste2.obj", "out/teste2.lst");
+		System.out.println("Compiling...");
+		boolean ok = main.compile("res/teste2.c", "out/teste2.asm");
+		if (ok) {
+			System.out.println("Done!");
+			main.assembly("out/teste2.asm", "out/teste2.obj", "out/teste2.lst");	
+		}
+		else {
+			System.out.println("Compilation not ok!");
+		}
 	}
 	
 	private boolean compile(String inputfile, String outputfile) throws FileNotFoundException {
@@ -58,7 +70,10 @@ public class Main {
 		semantic.checkEnd();
 		
 		cu.mm.generateCode(cu.cb);
-		cu.cb.write(System.out);
+		
+		if (DEBUG) {
+			cu.cb.write(System.out);
+		}
 		
 		PrintStream ps = new PrintStream(outputfile);
 		cu.cb.write(ps);
@@ -142,7 +157,7 @@ public class Main {
 		i.machine("r_declaracao_tipo");
 		i.transition(0, "{", 2, semantic.typeDefinition, semantic.checkDuplicatedType);
 		i.subMachineCall(2, "tipo", 3);
-		i.transition(3, "id", 4);
+		i.transition(3, "id", 4, semantic.field);
 		i.transition(4, ";", 5);
 		i.transition(5, "}", 6);
 		i.subMachineCall(5, "tipo", 3);
@@ -224,51 +239,39 @@ public class Main {
 		i.finalState(3, semantic.endE);
 		
 		for (String op : op1) {
-			i.transition(0, op, 4, semantic.op1);
-			i.transition(4, op, 4, semantic.op1);
+			i.transition(0, op, 8, semantic.op1);
+			i.transition(8, op, 8, semantic.op1);
 		}
 		
-		// 4 ===e3==> 3
+		// 8 ===e3==> 3
 
-		i.transition(4, "constante", 3, semantic.constant);
-		i.transition(4, "string", 3, semantic.string);
+		i.transition(8, "constante", 3, semantic.constant);
+		i.transition(8, "string", 3, semantic.string);
 		
-		i.transition(4, "(", 5, semantic.newExpressionContext);
+		i.transition(8, "(", 5, semantic.newExpressionContext);
 		i.subMachineCall(5, "expressao", 6, semantic.destroyExpressionContext, semantic.subExpression);
 		i.transition(6, ")", 3);
 		
-		i.transition(4, "id", 7);
-		i.finalState(7, semantic.endE);
+		i.transition(8, "id", 7, semantic.setIdE);
+		i.finalState(7, semantic.checkVarEndE);
 		for (String op : op2)
-			i.transition(7, op, 8, semantic.op2);
+			i.transition(7, op, 8, semantic.checkVar, semantic.lValueEnd, semantic.op2);
 		
-		i.subMachineCall(7, "r_lvalue", 3);
-		i.transition(7, "(", 9);
-		i.transition(9, ")", 3);
-		i.subMachineCall(9, "expressao", 10);
-		i.transition(10, ")", 3);
-		i.transition(10, ",", 11);
-		i.subMachineCall(11, "expressao", 10);
+		i.subMachineCall(7, "r_lvalue", 3, semantic.lValueEnd);
+		i.transition(7, "(", 9, semantic.checkFunction, semantic.newExpressionContext);
+		i.transition(9, ")", 3, semantic.destroyExpressionContext, semantic.functionCallEnd);
+		i.subMachineCall(9, "expressao", 10, semantic.destroyExpressionContext, semantic.functionArgument);
+		i.transition(10, ")", 3, semantic.functionCallEnd);
+		i.transition(10, ",", 11, semantic.newExpressionContext);
+		i.subMachineCall(11, "expressao", 10, semantic.destroyExpressionContext, semantic.functionArgument);
 		
 		// FIM
 		
 		for (String op : op2)
 			i.transition(3, op, 8, semantic.op2);
 		
-		for (String op : op1)
-			i.transition(8, op, 8, semantic.op1);
-		
-		// 8 ===e3==> 3
-
-		i.transition(8, "constante", 3, semantic.constant);
-		i.transition(8, "string", 3, semantic.string);
-		i.transition(8, "(", 5);
-		i.transition(8, "id", 7, semantic.setIdE);
-		
-		// FIM
-		
 		i.transition(0, "id", 12, semantic.setIdE);
-		i.finalState(12, semantic.endE);
+		i.finalState(12, semantic.checkVarEndE);
 		i.transition(12, "=", 0, semantic.checkVar, semantic.lValueEnd, semantic.assignment);
 		i.subMachineCall(12, "r_lvalue", 13, semantic.lValueEnd);
 		i.finalState(13, semantic.endE);
@@ -279,22 +282,22 @@ public class Main {
 			i.transition(13, op, 8, semantic.op2);
 		}
 		
-		i.transition(12, "(", 14, semantic.checkFunction);
-		i.transition(14, ")", 3);
-		i.subMachineCall(14, "expressao", 16, semantic.functionArgument);
+		i.transition(12, "(", 14, semantic.checkFunction, semantic.newExpressionContext);
+		i.transition(14, ")", 3, semantic.destroyExpressionContext, semantic.functionCallEnd);
+		i.subMachineCall(14, "expressao", 16, semantic.destroyExpressionContext, semantic.functionArgument);
 		i.transition(16, ")", 3, semantic.functionCallEnd);
-		i.transition(16, ",", 17);
-		i.subMachineCall(17, "expressao", 16, semantic.functionArgument);
+		i.transition(16, ",", 17, semantic.newExpressionContext);
+		i.subMachineCall(17, "expressao", 16, semantic.destroyExpressionContext, semantic.functionArgument);
 		
 		
 		i.machine("r_lvalue");
-		i.finalState(1, semantic.endE);
+		i.finalState(1);
 		i.transition(0, ".", 2, semantic.checkVar);
 		i.transition(1, ".", 2);
 		i.transition(2, "id", 1, semantic.accessRecordMember);
-		i.transition(0, "[", 3, semantic.checkVar);
-		i.transition(1, "[", 3);
-		i.subMachineCall(3, "expressao", 4, semantic.accessArrayElement);
+		i.transition(0, "[", 3, semantic.checkVar, semantic.newExpressionContext);
+		i.transition(1, "[", 3, semantic.newExpressionContext);
+		i.subMachineCall(3, "expressao", 4, semantic.destroyExpressionContext, semantic.accessArrayElement);
 		i.transition(4, "]", 1);
 		
 		
