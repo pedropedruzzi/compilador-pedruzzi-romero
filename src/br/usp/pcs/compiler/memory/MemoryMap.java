@@ -157,9 +157,9 @@ public class MemoryMap {
 		}
 
 		public void generateCode(String label, CodeBuffer cb) {
-			cb.addInstruction(new Instruction(label, Opcode.CONSTANT, (initial[0] << 8) & (initial[1] & 0xff)));
+			cb.addInstruction(new Instruction(label, Opcode.CONSTANT, (initial[0] << 8) | (initial[1] & 0xff)));
 			for (int i = 2; i < initial.length; i += 2)
-				cb.addInstruction(new Instruction(Opcode.CONSTANT, (initial[i] << 8) & (initial[i+1] & 0xff)));
+				cb.addInstruction(new Instruction(Opcode.CONSTANT, (initial[i] << 8) | (initial[i+1] & 0xff)));
 		}
 	}
 
