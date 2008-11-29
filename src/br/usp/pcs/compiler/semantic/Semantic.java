@@ -3,6 +3,7 @@ package br.usp.pcs.compiler.semantic;
 import java.nio.charset.Charset;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -110,8 +111,16 @@ public class Semantic {
 		}
 	};
 	
+	public SemanticAction forceReturn = new SemanticAction() {
+		public void doAction(Object r) {
+			cu.cb.addInstruction(new Instruction(Opcode.RETURN, returnAddress));
+		}
+	};
+	
 	public SemanticAction returnVoid = new SemanticAction() {
 		public void doAction(Object r) {
+			if (returnType != null)
+				warn("`return' with no value, in function returning non-void");
 			cu.cb.addInstruction(new Instruction(Opcode.RETURN, returnAddress));
 		}
 	};
@@ -324,7 +333,9 @@ public class Semantic {
 	public SemanticAction string = new SemanticActionWithToken() {
 		public void doAction(Token t) {
 			String str = (String) t.getValue();
-			String address = cu.mm.allocArea("string", str.getBytes(Charset.forName("ascii")));
+			byte[] content = str.getBytes(Charset.forName("ascii"));
+			content = Arrays.copyOf(content, (content.length + 2) & ~1);
+			String address = cu.mm.allocArea("string", content);
 			expression.current = ExpressionUtils.stringConstant(address);
 		}
 	};
@@ -382,6 +393,9 @@ public class Semantic {
 			case MULTIPLICATION:
 				expression.current = ExpressionUtils.multiply(expression.previous, expression.current);
 				break;
+			case DIVISION:
+				expression.current = ExpressionUtils.divide(expression.previous, expression.current);
+				break;
 			case EQUAL:
 				expression.current = ExpressionUtils.equal(expression.previous, expression.current);
 				break;
@@ -391,11 +405,20 @@ public class Semantic {
 			case LESS:
 				expression.current = ExpressionUtils.lessThan(expression.previous, expression.current);
 				break;
+			case LESS_OR_EQUAL:
+				expression.current = ExpressionUtils.lessThanOrEqualTo(expression.previous, expression.current);
+				break;
 			case GREATER:
 				expression.current = ExpressionUtils.greaterThan(expression.previous, expression.current);
 				break;
+			case GREATER_OR_EQUAL:
+				expression.current = ExpressionUtils.greaterThanOrEqualTo(expression.previous, expression.current);
+				break;
 			case LOGICAL_AND:
 				expression.current = ExpressionUtils.logicalAnd(expression.previous, expression.current);
+				break;
+			case LOGICAL_OR:
+				expression.current = ExpressionUtils.logicalOr(expression.previous, expression.current);
 				break;
 			default:
 				// TODO: implementar o resto da galera e deixar a exceção:
@@ -650,7 +673,7 @@ public class Semantic {
 		error("error on token: " + token.toString() + ": " + text);
 	}
 	private void warn(String text) {
-		System.out.println("Warning: " + text);
+		System.out.println("warning: " + text);
 	}
 
 	private void error(String text) {

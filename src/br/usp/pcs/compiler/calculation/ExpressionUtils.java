@@ -36,6 +36,12 @@ public class ExpressionUtils {
 		return wrap(CalculationUtils.multiply(e1, e2), e1.getType());
 	}
 
+	public static Expression divide(Expression e1, Expression e2) {
+		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
+			throw new CompilationException("incompatible types");
+		return wrap(CalculationUtils.divide(e1, e2), e1.getType());
+	}
+
 	public static Expression notEqual(Expression e1, Expression e2) {
 		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
 			throw new CompilationException("incompatible types");
@@ -58,10 +64,26 @@ public class ExpressionUtils {
 		return lessThan(e2, e1);
 	}
 
+	public static Expression lessThanOrEqualTo(Expression e1, Expression e2) {
+		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
+			throw new CompilationException("incompatible types");
+		return wrap(CalculationUtils.not(CalculationUtils.lessThan(e2, e1)), e1.getType());
+	}
+
+	public static Expression greaterThanOrEqualTo(Expression e1, Expression e2) {
+		return greaterThanOrEqualTo(e2, e1);
+	}
+
 	public static Expression logicalAnd(Expression e1, Expression e2) {
 		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
 			throw new CompilationException("incompatible types");
 		return wrap(CalculationUtils.logicalAnd(e1, e2), e1.getType());
+	}
+
+	public static Expression logicalOr(Expression e1, Expression e2) {
+		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
+			throw new CompilationException("incompatible types");
+		return wrap(CalculationUtils.logicalOr(e1, e2), e1.getType());
 	}
 
 	public static boolean isCompatible(Type t1, Type t2) {

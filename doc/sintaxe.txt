@@ -11,7 +11,7 @@ declaracao_funcao = prototipo_funcao ";" .
 declaracao_tipo = "type" id "{" tipo id ";" { tipo id ";" } "}" ";" .
 funcao = prototipo_funcao bloco .
 bloco = "{" { declaracao_variavel } { comando } "}" .
-comando = bloco | expressao ";" | if | while | for | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+comando = bloco | expressao ";" | if | while | for | "return" [ expressao ] ";" | "continue" ";" | "break" ";" | ";" .
 if = "if" "(" expressao ")" comando [ "else" comando ] .
 for = "for" "(" expressao ";" expressao ";" expressao ")" comando .
 while = "while" "(" expressao ")" comando .
@@ -49,12 +49,12 @@ Simplificando
 1) substitui if, for e while em comando:
 
 bloco = "{" { declaracao_variavel } { comando } "}" .
-comando = bloco | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+comando = bloco | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" [ expressao ] ";" | "continue" ";" | "break" ";" | ";" .
 
 2) elimina bloco
 
 funcao = prototipo_funcao "{" { declaracao_variavel } { comando } "}" .
-comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" [ expressao ] ";" | "continue" ";" | "break" ";" | ";" .
 
 3) elimina prototipo_funcao, e junta declaracao_funcao com funcao
 
@@ -68,7 +68,7 @@ declaracao_variavel = tipo id [ "=" ( constante | string ) ] { "," id [ "=" ( co
 tipo = ( "int" | "char" | "type" id ) [ "[" "]" ] { "[" constante "]" } .
 declaracao_tipo = "type" id "{" tipo id ";" { tipo id ";" } "}" ";" .
 func = ( "int" | "char" | "void" ) id "(" [ tipo id { "," tipo id } ] ")" ( "{" { declaracao_variavel } { comando } "}" | ";" ) .
-comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" [ expressao ] ";" | "continue" ";" | "break" ";" | ";" .
 expressao = { lvalue "=" } { op1 } ( lvalue | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) { op2 { op1 } ( lvalue | id "(" [ expressao { "," expressao } ] ")" | constante | "(" expressao ")" ) } .
 lvalue = id { "[" expressao "]" | "." id } .
 

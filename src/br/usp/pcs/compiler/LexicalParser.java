@@ -213,8 +213,7 @@ public class LexicalParser implements Lex {
 				
 			case STRING_LITERAL:
 				if (escaped) {
-					// TODO suportar escape sequences
-					buffer.append(c);
+					buffer.append(escaped(c));
 					escaped = false;
 				} else {
 					if (c == '\\') {
@@ -236,8 +235,7 @@ public class LexicalParser implements Lex {
 
 			case CHAR_CONSTANT:
 				if (escaped) {
-					// TODO suportar escape sequences
-					buffer.append(c);
+					buffer.append(escaped(c));
 					escaped = false;
 				} else {
 					if (c == '\\') {
@@ -286,6 +284,23 @@ public class LexicalParser implements Lex {
 		}
 	}
 	
+	private char escaped(char c) {
+		switch (c) {
+		case 'n':
+			return '\n';
+		case 't':
+			return '\t';
+		case 'r':
+			return '\r';
+		case 'b':
+			return '\b';
+		case '0':
+			error("`\\0' is not supported!");
+		default:
+			return c;
+		}
+	}
+
 	private void error(String text) {
 		throw new RuntimeException("Lex error on line " + tokenLin + " column " + tokenCol + ": " + text);
 	}
