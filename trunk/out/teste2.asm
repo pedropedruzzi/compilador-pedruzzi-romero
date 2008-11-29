@@ -308,6 +308,6 @@ __45_temp	K	/0
 __49_printf_texto	K	/0
 __50_printf_valor	K	/0
 __53_i	K	/0
-__56_string	K	/0
-		K	/0
+__56_string	K	/2564
+		K	/6e00
 __57_p	K	__56_string
