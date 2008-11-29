@@ -70,6 +70,14 @@ void insere_na_ordem(int valor) {
 void printf(char[] texto, int valor) {
 }
 
+void teste_func(type item var) {
+	return 666;
+}
+
+void x(int i) {
+	teste_func(lista[12 * i]);
+}
+
 void dump_lista() {
 	int i = primeiro;
 	while (i != NENHUM) {
