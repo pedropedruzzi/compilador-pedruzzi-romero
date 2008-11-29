@@ -174,7 +174,7 @@ public class Main {
 		i.transition(8, ")", 6);
 		i.transition(8, ",", 9);
 		i.subMachineCall(9, "tipo", 7);
-		i.transition(6, ";", 1);
+		i.transition(6, ";", 1); // TODO: suportar declaração e definição separadamente.
 		i.transition(6, "{", 10, semantic.registerFunction, semantic.newCommandContext);
 		i.subMachineCall(10, "declaracao_variavel", 10);
 		i.transition(10, "}", 1, semantic.returnVoid, semantic.destroyCommandContext, semantic.destroyScope);

@@ -69,10 +69,10 @@ public class CalculationUtils {
 		}
 		
 		public void evaluate(CompilationUnit cu) {
-			op1.evaluate(cu);
+			op2.evaluate(cu);
 			String tmp = cu.vm.takeTemporary();
 			cu.cb.addInstruction(new Instruction(Opcode.STORE, tmp));
-			op2.evaluate(cu);
+			op1.evaluate(cu);
 			doOperation(cu.cb, tmp);
 			cu.vm.returnTemporary(tmp);
 		}
@@ -169,7 +169,7 @@ public class CalculationUtils {
 	}
 	
 	public static Calculation multiply(Calculation c1, Calculation c2) {
-		if (isConstant(c2) && isConstant(c2)) {
+		if (isConstant(c1) && isConstant(c2)) {
 			Constant const1 = (Constant) c1;
 			Constant const2 = (Constant) c2;
 			return new Constant(const1.getValue() * const2.getValue());
@@ -274,6 +274,67 @@ public class CalculationUtils {
 	public static int getValue(Calculation c) {
 		if (!isConstant(c)) throw new IllegalStateException("not a constant");
 		return ((Constant) c).getValue();
+	}
+	
+	private static class LessThanOperation implements Calculation {
+		protected Calculation op1;
+		protected Calculation op2;
+		
+		public LessThanOperation(Calculation op1, Calculation op2) {
+			this.op1 = op1;
+			this.op2 = op2;
+		}
+		
+		public void evaluate(CompilationUnit cu) {
+			op2.evaluate(cu);
+			String tmp = cu.vm.takeTemporary();
+			cu.cb.addInstruction(new Instruction(Opcode.STORE, tmp));
+			op1.evaluate(cu);
+			cu.cb.addInstruction(new Instruction(Opcode.SUBTRACT, tmp));
+			cu.vm.returnTemporary(tmp);
+			String label = cu.mm.label("lt");
+			cu.cb.addInstruction(new Instruction(Opcode.JN, label));
+			constant(0).evaluate(cu);
+			cu.cb.setNextLabel(label);
+		}
+	}
+	
+	public static Calculation lessThan(Calculation c1, Calculation c2) {
+		if (isConstant(c1) && isConstant(c2)) {
+			Constant const1 = (Constant) c1;
+			Constant const2 = (Constant) c2;
+			return new Constant((const1.getValue() < const2.getValue()) ? 1 : 0);
+		} else {
+			return new LessThanOperation(c1, c2);
+		}
+	}
+	
+	private static class LogicalAndOperation implements Calculation {
+		protected Calculation op1;
+		protected Calculation op2;
+		
+		public LogicalAndOperation(Calculation op1, Calculation op2) {
+			this.op1 = op1;
+			this.op2 = op2;
+		}
+		
+		public void evaluate(CompilationUnit cu) {
+			op1.evaluate(cu);
+			String label = cu.mm.label("and");
+			cu.cb.addInstruction(new Instruction(Opcode.JZ, label));
+			op2.evaluate(cu);
+			cu.cb.setNextLabel(label);
+		}
+	}
+	
+	public static Calculation logicalAnd(Calculation c1, Calculation c2) {
+		if (isConstant(c1) && isConstant(c2)) {
+			Constant const1 = (Constant) c1;
+			Constant const2 = (Constant) c2;
+			return new Constant((const1.getValue() != 0 && const2.getValue() != 0) ? 1 : 0);
+		} else {
+			return new LogicalAndOperation(c1, c2);
+		}
 	}
 
 }

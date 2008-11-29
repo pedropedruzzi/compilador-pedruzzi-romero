@@ -36,6 +36,34 @@ public class ExpressionUtils {
 		return wrap(CalculationUtils.multiply(e1, e2), e1.getType());
 	}
 
+	public static Expression notEqual(Expression e1, Expression e2) {
+		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
+			throw new CompilationException("incompatible types");
+		return wrap(CalculationUtils.subtract(e1, e2), e1.getType());
+	}
+
+	public static Expression equal(Expression e1, Expression e2) {
+		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
+			throw new CompilationException("incompatible types");
+		return wrap(CalculationUtils.not(CalculationUtils.subtract(e1, e2)), e1.getType());
+	}
+
+	public static Expression lessThan(Expression e1, Expression e2) {
+		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
+			throw new CompilationException("incompatible types");
+		return wrap(CalculationUtils.lessThan(e1, e2), e1.getType());
+	}
+
+	public static Expression greaterThan(Expression e1, Expression e2) {
+		return lessThan(e2, e1);
+	}
+
+	public static Expression logicalAnd(Expression e1, Expression e2) {
+		if (!isCompatibleMathOperation(e1.getType(), e2.getType()))
+			throw new CompilationException("incompatible types");
+		return wrap(CalculationUtils.logicalAnd(e1, e2), e1.getType());
+	}
+
 	public static boolean isCompatible(Type t1, Type t2) {
 		return t1 == t2 && t1 instanceof PrimitiveType;
 	}

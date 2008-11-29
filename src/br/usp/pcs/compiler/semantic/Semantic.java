@@ -382,6 +382,21 @@ public class Semantic {
 			case MULTIPLICATION:
 				expression.current = ExpressionUtils.multiply(expression.previous, expression.current);
 				break;
+			case EQUAL:
+				expression.current = ExpressionUtils.equal(expression.previous, expression.current);
+				break;
+			case NOT_EQUAL:
+				expression.current = ExpressionUtils.notEqual(expression.previous, expression.current);
+				break;
+			case LESS:
+				expression.current = ExpressionUtils.lessThan(expression.previous, expression.current);
+				break;
+			case GREATER:
+				expression.current = ExpressionUtils.greaterThan(expression.previous, expression.current);
+				break;
+			case LOGICAL_AND:
+				expression.current = ExpressionUtils.logicalAnd(expression.previous, expression.current);
+				break;
 			default:
 				// TODO: implementar o resto da galera e deixar a exceção:
 				// throw new RuntimeException("unexpected binary operator: " + expression.op2.toString());
