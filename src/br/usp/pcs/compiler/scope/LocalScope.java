@@ -28,6 +28,10 @@ public class LocalScope implements Scope {
 	private GlobalScope getGlobal() {
 		return global;
 	}
+
+	public boolean isGlobal() {
+		return false;
+	}
 	
 	public boolean containsSymbol(String symbol) {
 		return containsVariableCurrentScope(symbol) || parent.containsSymbol(symbol);

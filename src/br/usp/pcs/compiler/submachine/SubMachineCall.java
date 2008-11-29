@@ -18,4 +18,8 @@ public class SubMachineCall extends Transition {
 		return subMachine;
 	}
 	
+	public String toString() {
+		return super.toString() + " " + subMachine.getId();
+	}
+	
 }

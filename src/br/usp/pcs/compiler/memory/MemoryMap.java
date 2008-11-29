@@ -1,4 +1,5 @@
 package br.usp.pcs.compiler.memory;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -149,8 +150,10 @@ public class MemoryMap {
 		byte[] initial;
 
 		public InitializedMemoryArea(byte[] initial) {
-			if ((initial.length & 1) != 0) throw new IllegalArgumentException("only even-sized blocks allowed");
-			this.initial = initial;
+			if ((initial.length & 1) != 0)
+				this.initial = Arrays.copyOf(initial, initial.length + 1);
+			else
+				this.initial = initial;
 		}
 
 		public void generateCode(String label, CodeBuffer cb) {

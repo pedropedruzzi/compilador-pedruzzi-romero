@@ -12,8 +12,6 @@ public class LexicalParser implements Lex {
 	private static final String SINGLE_OP = "{}[](),;~-+*%^.";
 	private static final String OPS = "{}[]()+-*/%.,;<>=&|~!^?:#";
 	
-	
-	
 	private Reader input;
 	private StringBuffer buffer = new StringBuffer(256);
 	private LexicalState state = LexicalState.INITIAL;
@@ -53,11 +51,6 @@ public class LexicalParser implements Lex {
 		while (last == null) {
 			if (isEOF()) return;
 			char c = nextChar();
-			
-			// TODO:
-			// preprocessamento (# e ##)
-			// constantes numericas
-			// comentarios
 			
 			switch (state) {
 			case INITIAL:
@@ -284,7 +277,7 @@ public class LexicalParser implements Lex {
 				
 			case COMMENT2:
 				if (c == '/') state = LexicalState.INITIAL;
-				else state = LexicalState.LINE_COMMENT;
+				else state = LexicalState.COMMENT;
 				break;
 
 			case LINE_COMMENT:
@@ -292,11 +285,7 @@ public class LexicalParser implements Lex {
 			}
 		}
 	}
-
-	/*
-	 * BLABLABLA
-	 * 
-	 */
+	
 	private void error(String text) {
 		throw new RuntimeException("Lex error on line " + tokenLin + " column " + tokenCol + ": " + text);
 	}

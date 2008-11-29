@@ -1,28 +1,31 @@
 package br.usp.pcs.compiler.semantic;
 
 import java.nio.charset.Charset;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 import br.usp.pcs.compiler.CompilationException;
 import br.usp.pcs.compiler.Token;
 import br.usp.pcs.compiler.Token.TokenType;
 import br.usp.pcs.compiler.calculation.CalculationUtils;
+import br.usp.pcs.compiler.calculation.Dereference;
 import br.usp.pcs.compiler.calculation.Expression;
 import br.usp.pcs.compiler.calculation.ExpressionUtils;
 import br.usp.pcs.compiler.calculation.FunctionCall;
 import br.usp.pcs.compiler.calculation.LValue;
-import br.usp.pcs.compiler.calculation.MockExpression;
-import br.usp.pcs.compiler.calculation.Operand;
+import br.usp.pcs.compiler.calculation.ExpressionUtils.StringConstant;
 import br.usp.pcs.compiler.entity.CustomType;
 import br.usp.pcs.compiler.entity.Function;
 import br.usp.pcs.compiler.entity.Variable;
 import br.usp.pcs.compiler.entity.type.Array;
 import br.usp.pcs.compiler.entity.type.Field;
+import br.usp.pcs.compiler.entity.type.Pointer;
 import br.usp.pcs.compiler.entity.type.PrimitiveType;
 import br.usp.pcs.compiler.entity.type.Record;
 import br.usp.pcs.compiler.entity.type.SizedArray;
@@ -100,8 +103,7 @@ public class Semantic {
 			if (returnType == null) {
 				warn("`return' with a value, in function returning void");
 			} else if (!ExpressionUtils.isCompatible(returnType, e.getType())) {
-				// TODO uncomment
-				// error("return type not compatible");
+				error("return type not compatible");
 			}
 			e.evaluate(cu);
 			cu.cb.addInstruction(new Instruction(Opcode.RETURN, returnAddress));
@@ -212,15 +214,17 @@ public class Semantic {
 	private ExpressionContext expression = new ExpressionContext(null);
 	private class ExpressionContext {
 		private Token idToken;
-		private Expression e;
+		private Expression current;
+		private Expression previous;
 		private LValue lValue;
 		private FunctionCall fCall;
-		private Operand o;
 		
 		private Set<LValue> lValues = new HashSet<LValue>();
+		private Queue<TokenType> op1 = new ArrayDeque<TokenType>();
 		
 		
 		private final ExpressionContext parent;
+		protected TokenType op2;
 		public ExpressionContext(ExpressionContext parent) {
 			this.parent = parent;
 		}
@@ -235,12 +239,6 @@ public class Semantic {
 	public SemanticAction destroyExpressionContext = new SemanticAction() {
 		public void doAction(Object o) {
 			expression = expression.parent;
-		}
-	};
-	
-	public SubMachineReturnAction endE = new SubMachineReturnAction() {
-		public Object returnAction() {
-			return new MockExpression();
 		}
 	};
 	
@@ -271,7 +269,7 @@ public class Semantic {
 		public void doAction(Object o) {
 			if (!expression.fCall.isComplete())
 				error("missing arguments in function call");
-			expression.e = expression.fCall;
+			expression.current = expression.fCall;
 		}
 	};
 
@@ -282,6 +280,16 @@ public class Semantic {
 			String id = (String) expression.idToken.getValue();
 			if (!scope.containsVariable(id)) error(expression.idToken, "not a variable");
 			expression.lValue = new LValue(scope.retrieveVariable(id));
+		}
+	};
+	
+	public SubMachineReturnAction checkVarEndE = new SubMachineReturnAction() {
+		public Object returnAction() {
+			String id = (String) expression.idToken.getValue();
+			if (!scope.containsVariable(id)) error(expression.idToken, "not a variable");
+			expression.lValue = new LValue(scope.retrieveVariable(id));
+			expression.current = expression.lValue;
+			return endE.returnAction();
 		}
 	};
 	
@@ -301,14 +309,14 @@ public class Semantic {
 	
 	public SemanticAction lValueEnd = new SemanticAction() {
 		public void doAction(Object o) {
-			expression.e = expression.lValue;
+			expression.current = expression.lValue;
 		}
 	};
 	
 	/** constant **/
 	public SemanticAction constant = new SemanticActionWithToken() {
 		public void doAction(Token t) {
-			expression.e = ExpressionUtils.integerConstant((Integer) t.getValue());
+			expression.current = ExpressionUtils.integerConstant((Integer) t.getValue());
 		}
 	};
 	
@@ -317,14 +325,15 @@ public class Semantic {
 		public void doAction(Token t) {
 			String str = (String) t.getValue();
 			String address = cu.mm.allocArea("string", str.getBytes(Charset.forName("ascii")));
-			expression.e = ExpressionUtils.stringConstant(address);
+			expression.current = ExpressionUtils.stringConstant(address);
 		}
 	};
 	
 	
 	public SemanticAction assignment = new SemanticAction() {
 		public void doAction(Object o) {
-			if (expression.lValue.getType() != PrimitiveType.intTypeInstance())
+			Pointer p = (Pointer) expression.lValue.getType();
+			if (p.getInnerType() != PrimitiveType.intTypeInstance())
 				error("can only assign integer lvalues");
 			
 			expression.lValues.add(expression.lValue);
@@ -332,18 +341,78 @@ public class Semantic {
 	};
 	
 	
-	public SemanticAction op1 = new SemanticAction() {
-		public void doAction(Object o) {
+	public SemanticAction op1 = new SemanticActionWithToken() {
+		public void doAction(Token t) {
+			expression.op1.add(t.getType());
 		}
 	};
 	
-	public SemanticAction op2 = new SemanticAction() {
-		public void doAction(Object o) {
+	private void processExpressionElement() {
+		if (expression.current instanceof LValue) {
+			LValue lvalue = (LValue) expression.current;
+			if (lvalue.isSimple()) {
+				expression.current = ExpressionUtils.memoryReference(lvalue.getBaseAddress(), lvalue.getInnerType());
+			} else {
+				expression.current = new Dereference((LValue) expression.current);
+			}
+		}
+		
+		while (!expression.op1.isEmpty()) {
+			TokenType op = expression.op1.remove();
+			switch (op) {
+			case LOGICAL_NOT:
+				expression.current = ExpressionUtils.not(expression.current);
+				break;
+			case MINUS:
+				expression.current = ExpressionUtils.inverse(expression.current);
+				break;
+			default:
+				throw new RuntimeException("unexpected unary operator!");
+			}
+		}
+		
+		if (expression.previous != null) {
+			switch (expression.op2) {
+			case PLUS:
+				expression.current = ExpressionUtils.add(expression.previous, expression.current);
+				break;
+			case MULTIPLICATION:
+				expression.current = ExpressionUtils.multiply(expression.previous, expression.current);
+				break;
+			default:
+				// TODO: implementar o resto da galera e deixar a exceção:
+				// throw new RuntimeException("unexpected binary operator: " + expression.op2.toString());
+				expression.current = ExpressionUtils.add(expression.previous, expression.current);
+			}
+		}
+	}
+	
+	
+	public SemanticAction op2 = new SemanticActionWithToken() {
+		public void doAction(Token t) {
+			processExpressionElement();
+			expression.previous = expression.current;
+			expression.current = null;
+			expression.op2 = t.getType();
+		}
+	};
+	
+	public SubMachineReturnAction endE = new SubMachineReturnAction() {
+		public Object returnAction() {
+			processExpressionElement();
+			Expression e = expression.current;
+			expression.previous = null;
+			expression.current = null;
+			expression.op1.clear();
+			expression.op2 = null;
+			if (e == null) e = ExpressionUtils.voidExpression();
+			return e;
 		}
 	};
 	
 	public SemanticAction subExpression = new SemanticAction() {
 		public void doAction(Object o) {
+			expression.current = (Expression) o;
 		}
 	};
 	
@@ -417,18 +486,6 @@ public class Semantic {
 		}
 	};
 	
-	public SemanticAction checkDuplicatedType = new SemanticAction() {
-		public void doAction(Object o) {
-			if (scope.containsCustomType(id)) error("duplicated type definition: " + id);
-		}
-	};
-	
-	public SemanticAction typeDefinition = new SemanticAction() {
-		public void doAction(Object o) {
-			id = typeId;
-		}
-	};
-	
 	public SemanticAction setTypeId = new SemanticActionWithToken() {
 		public void doAction(Token token) {
 			typeId = (String) token.getValue();
@@ -475,17 +532,31 @@ public class Semantic {
 	public SemanticAction registerVariable = new SemanticAction() {
 		public void doAction(Object result) {
 			if (scope.containsVariableCurrentScope(id)) error("duplicated variable: " + id);
-			scope.registerSymbol(id, new Variable(cu.mm.allocVariable(id, (short) CalculationUtils.getValue(initializer)), type));
-
-			// TODO tratar o caso de string!!
-			// pode ser estático ou dinâmico. o segundo caso preciso gerar código. estático: precisa ser constante
-			/*
-			if (initializer instanceof Integer) {
-				scope.registerSymbol(id, new Variable(mm.allocVariable(id, ((Integer) initializer).shortValue()), type));
-			} else if (initializer instanceof String) {
-				scope.registerSymbol(id, new Variable(mm.allocPointer(id, (String) initializer), type));
+			Variable var = null;
+			if (scope.isGlobal() && initializer != null) {
+				if (CalculationUtils.isConstant(initializer)) {
+					// TODO verificar TIPO! tem que ser int!!
+					var = new Variable(cu.mm.allocVariable(id, (short) CalculationUtils.getValue(initializer)), type);
+				} else {
+					if (initializer instanceof StringConstant) {
+						// TODO verificar TIPO! tem que ser char[] ou *char[] (?)
+						StringConstant sc = (StringConstant) initializer;
+						var = new Variable(cu.mm.allocPointer(id, sc.getAddress()), type);
+					} else {
+						error("static initializer must be a constant expression. " + initializer.toString());
+					}
+				}
+			} else {
+				String address = cu.mm.allocVariable(id);
+				var = new Variable(address, type);
+				if (initializer != null) {
+					initializer.evaluate(cu);
+					cu.cb.addInstruction(new Instruction(Opcode.STORE, address));
+				}
 			}
-			*/
+			
+			scope.registerSymbol(id, var);
+			initializer = null;
 		}
 	};
 	
@@ -495,10 +566,32 @@ public class Semantic {
 		}
 	};
 	
+	
+
+	private List<Field> fields;
+	public SemanticAction typeDefinition = new SemanticAction() {
+		public void doAction(Object o) {
+			id = typeId;
+			fields = new LinkedList<Field>();
+		}
+	};
+	
+	public SemanticAction checkDuplicatedType = new SemanticAction() {
+		public void doAction(Object o) {
+			if (scope.containsCustomType(id)) error("duplicated type definition: " + id);
+		}
+	};
+	
+	public SemanticAction field = new SemanticActionWithToken() {
+		public void doAction(Token t) {
+			String id = (String) t.getValue();
+			fields.add(new Field(id, type));
+		}
+	};
+	
 	public SemanticAction registerType = new SemanticAction() {
 		public void doAction(Object result) {
-			// TODO:
-			scope.registerSymbol(id, new CustomType(new Record(new Field[0])));
+			scope.registerCustomType(id, new CustomType(new Record(fields.toArray(new Field[fields.size()]))));
 		}
 	};
 	
@@ -547,6 +640,7 @@ public class Semantic {
 	
 	public void checkEnd() {
 		if (command != null) throw new RuntimeException("command context should be null!");
+		if (expression.parent != null) throw new RuntimeException("expression parent context should be null!");
 	}
 
 }

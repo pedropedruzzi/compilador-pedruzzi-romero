@@ -1,12 +1,13 @@
 package br.usp.pcs.compiler.entity.type;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class Record extends Type {
 	
 	private final Field[] fields;
 	private final int size;
-	private Map<String, FieldData> map;
+	private Map<String, FieldData> map = new HashMap<String, FieldData>();
 
 	public Record(Field[] fields) {
 		this.fields = fields;

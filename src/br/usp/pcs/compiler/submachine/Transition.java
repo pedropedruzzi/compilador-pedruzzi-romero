@@ -22,4 +22,8 @@ public class Transition {
 		return actions;
 	}
 	
+	public String toString() {
+		return "(" + nextState + ")";
+	}
+	
 }
