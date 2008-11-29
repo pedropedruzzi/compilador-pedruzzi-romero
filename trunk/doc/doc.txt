@@ -123,3 +123,26 @@ Nas chamadas de submáquinas pode-de adicionar uma ou mais ações semânticas que r
 2.3. Sintaxe sensível ao contexto, ações semânticas e geração de código
 
 shiiii marquinhos... olha o código, filhão! Ta tudo lah!
+
+
+Tabelas utilizados no compilador:
+
+Tabela de transições
+mapeia estado atual e simbolo de entrada com Transição.
+Transição contém o próximo estado e pode ser uma transição normal (consome o token) ou uma chamada de submáquina (deixa o token e chama a submáquina).
+Na transição também pode existir ponteiros para ações semânticas.
+
+Tabela de variáveis temporárias
+Gerencia variáveis temporárias.
+
+Tabela de mapa de memória
+Gerencia os símbolos da linguagem de montagem e suas alocações.
+Pode-se solicitar um label, uma variável simples inicializada ou não; uma área de memória inicializada ou não; ou um símbolo que aponta para um outro símbolo.
+
+Tabela de constantes
+Gerencia constantes utilizadas para evitar duplicatas.
+
+Tabelas de símbolos
+Gerencias os escopos do programa, com os símbolos da linguagem de alto nível. Variáveis, tipos e funções são armazenados.
+
+
