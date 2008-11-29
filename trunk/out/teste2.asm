@@ -8,9 +8,9 @@ __6_for1	LV	/64
 		LV	/0
 __8_lt	JZ	__9_for2
 		LD	__0_LIVRE
-		LV	/1
-		MM	__7_temp
 		LD	__5_i
+		MM	__7_temp
+		LV	/1
 		+	__7_temp
 		JP	__6_for1
 __9_for2	LD	__1_NENHUM
@@ -46,9 +46,9 @@ __20_not1	LV	/1
 __21_not2	JZ	__22_if1
 		LD	__11_i
 		RS	__10_proximo_livre
-__22_if1	LV	/1
+__22_if1	LD	__11_i
 		MM	__19_temp
-		LD	__11_i
+		LV	/1
 		+	__19_temp
 		JP	__12_for1
 __14_for2	LD	__1_NENHUM
@@ -235,19 +235,18 @@ __58_while2	LD	__38_insere_na_ordem_valor
 __60_load	K	/0
 		LD	__50_livre
 __48_if2	RS	__39_insere_na_ordem
-__63_printf	K	/0
-		RS	__63_printf
-__65_teste_func	K	/0
-		LV	/29a
-		RS	__65_teste_func
-		RS	__65_teste_func
-__67_x	K	/0
+__64_printf	K	/0
+		RS	__64_printf
+__66_teste_func	K	/0
+		RS	__66_teste_func
+		RS	__66_teste_func
+__68_x	K	/0
 		LD	__15_const
-		MM	__68_load
+		MM	__69_load
 		LV	/0
 		+	__17_p
 		MM	__18_temp
-		LD	__66_x_i
+		LD	__67_x_i
 		MM	__19_temp
 		LV	/c
 		*	__19_temp
@@ -255,50 +254,52 @@ __67_x	K	/0
 		LV	/4
 		*	__7_temp
 		+	__18_temp
-		+	__68_load
-__68_load	K	/0
-		MM	__64_teste_func_var
-		SC	__65_teste_func
-		RS	__67_x
-__69_dump_lista	K	/0
+		+	__69_load
+__69_load	K	/0
+		MM	__65_teste_func_var
+		SC	__66_teste_func
+		RS	__68_x
+__70_dump_lista	K	/0
 		LD	__3_primeiro
-		MM	__70_i
-__71_while1	LD	__1_NENHUM
+		MM	__71_i
+__72_while1	LD	__1_NENHUM
 		MM	__53_temp
-		LD	__70_i
+		LD	__71_i
 		-	__53_temp
-		JZ	__72_while2
-		LD	__74_p
+		JZ	__73_while2
+		LD	__75_p
 		MM	__61_printf_texto
+		LD	__71_i
+		MM	__62_printf_valor1
 		LD	__15_const
-		MM	__75_load
+		MM	__76_load
 		LV	/0
 		+	__17_p
 		MM	__19_temp
-		LD	__70_i
+		LD	__71_i
 		MM	__7_temp
 		LV	/4
 		*	__7_temp
 		+	__19_temp
-		+	__75_load
-__75_load	K	/0
-		MM	__62_printf_valor
-		SC	__63_printf
+		+	__76_load
+__76_load	K	/0
+		MM	__63_printf_valor2
+		SC	__64_printf
 		LD	__15_const
-		MM	__76_load
+		MM	__77_load
 		LV	/2
 		+	__17_p
 		MM	__18_temp
-		LD	__70_i
+		LD	__71_i
 		MM	__53_temp
 		LV	/4
 		*	__53_temp
 		+	__18_temp
-		+	__76_load
-__76_load	K	/0
-		JP	__71_while1
-__72_while2	RS	__69_dump_lista
-__77_main	K	/0
+		+	__77_load
+__77_load	K	/0
+		JP	__72_while1
+__73_while2	RS	__70_dump_lista
+__78_main	K	/0
 		SC	__4_inicializa
 		LV	/7
 		MM	__38_insere_na_ordem_valor
@@ -327,10 +328,10 @@ __77_main	K	/0
 		LV	/0
 		MM	__38_insere_na_ordem_valor
 		SC	__39_insere_na_ordem
-		SC	__69_dump_lista
+		SC	__70_dump_lista
 		LV	/0
-		RS	__77_main
-		RS	__77_main
+		RS	__78_main
+		RS	__78_main
 __0_LIVRE	K	/FFFE
 __1_NENHUM	K	/FFFF
 __2_lista	K	/0
@@ -351,10 +352,15 @@ __49_i	K	/0
 __50_livre	K	/0
 __53_temp	K	/0
 __61_printf_texto	K	/0
-__62_printf_valor	K	/0
-__64_teste_func_var	K	/0
-__66_x_i	K	/0
-__70_i	K	/0
-__73_string	K	/2564
-		K	/6e00
-__74_p	K	__73_string
+__62_printf_valor1	K	/0
+__63_printf_valor2	K	/0
+__65_teste_func_var	K	/0
+__67_x_i	K	/0
+__71_i	K	/0
+__74_string	K	/5b25
+		K	/645d
+		K	/203d
+		K	/2025
+		K	/643b
+		K	/a00
+__75_p	K	__74_string

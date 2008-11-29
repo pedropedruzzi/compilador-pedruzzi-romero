@@ -67,11 +67,11 @@ void insere_na_ordem(int valor) {
 	}
 }
 
-void printf(char[] texto, int valor) {
+void printf(char[] texto, int valor1, int valor2) {
 }
 
 void teste_func(type item var) {
-	return 666;
+	return;
 }
 
 void x(int i) {
@@ -81,7 +81,7 @@ void x(int i) {
 void dump_lista() {
 	int i = primeiro;
 	while (i != NENHUM) {
-		printf("%d\n", lista[i].valor);
+		printf("[%d] = %d;\n", i, lista[i].valor);
 		i = lista[i].proximo;
 	}
 }

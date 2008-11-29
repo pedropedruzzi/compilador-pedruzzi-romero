@@ -177,13 +177,13 @@ public class Main {
 		i.transition(6, ";", 1); // TODO: suportar declaração e definição separadamente.
 		i.transition(6, "{", 10, semantic.registerFunction, semantic.newCommandContext);
 		i.subMachineCall(10, "declaracao_variavel", 10);
-		i.transition(10, "}", 1, semantic.returnVoid, semantic.destroyCommandContext, semantic.destroyScope);
+		i.transition(10, "}", 1, semantic.forceReturn, semantic.destroyCommandContext, semantic.destroyScope);
 		i.subMachineCall(10, "comando", 11);
 		i.subMachineCall(11, "comando", 11);
-		i.transition(11, "}", 1, semantic.returnVoid, semantic.destroyCommandContext, semantic.destroyScope);
+		i.transition(11, "}", 1, semantic.forceReturn, semantic.destroyCommandContext, semantic.destroyScope);
 		i.finalState(1);
 		
-		// comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" expressao ";" | "continue" ";" | "break" ";" | ";" .
+		// comando = "{" { declaracao_variavel } { comando } "}" | expressao ";" | "if" "(" expressao ")" comando [ "else" comando ] | "while" "(" expressao ")" comando | "for" "(" expressao ";" expressao ";" expressao ")" comando | "return" [ expressao ] ";" | "continue" ";" | "break" ";" | ";" .
 		i.machine("comando");
 		i.transition(0, "{", 2, semantic.openNewScope, semantic.newCommandContext);
 		i.subMachineCall(0, "expressao", 4, semantic.evaluateE);
@@ -201,6 +201,7 @@ public class Main {
 		i.transition(3, "}", 1, semantic.destroyScope, semantic.destroyCommandContext);
 		i.transition(4, ";", 1);
 		i.subMachineCall(5, "expressao", 4, semantic.returnE);
+		i.transition(5, ";", 1, semantic.returnVoid);
 		i.transition(6, "(", 7);
 		i.subMachineCall(7, "expressao", 8, semantic.ifE);
 		i.transition(8, ")", 9, semantic.newCommandContext);
