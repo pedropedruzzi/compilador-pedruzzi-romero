@@ -157,6 +157,16 @@ public class CalculationUtils {
 		
 		return new AddOperation(c1, c2);
 	}
+
+	public static Calculation subtract(Calculation c1, Calculation c2) {
+		if (isConstant(c1) && isConstant(c2)) {
+			Constant const1 = (Constant) c1;
+			Constant const2 = (Constant) c2;
+			return new Constant(const1.getValue() - const2.getValue());
+		} else {
+			return new SubtractOperation(c1, c2);
+		}
+	}
 	
 	public static Calculation multiply(Calculation c1, Calculation c2) {
 		if (isConstant(c2) && isConstant(c2)) {
