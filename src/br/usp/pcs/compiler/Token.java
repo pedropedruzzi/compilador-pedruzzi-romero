@@ -42,8 +42,7 @@ public class Token {
 		FOR(true), IF(true), INT(true), 
 		RETURN(true), TYPE(true),
 		VOID(true),
-		WHILE(true),
-		VAR(true), FUNC(true);
+		WHILE(true);
 		
 		private static Set<String> keywords;
 		private boolean isOperand = false;

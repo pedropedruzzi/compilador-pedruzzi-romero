@@ -30,7 +30,7 @@ public class InternalVariableManager {
 	public String getConstant(int value) {
 		String ret = constants.get(value);
 		if (ret == null) {
-			ret = mm.allocVariable(CONST_TIP);
+			ret = mm.allocVariable(CONST_TIP, (short) value);
 			constants.put(value, ret);
 		}
 		return ret;

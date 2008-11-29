@@ -237,45 +237,68 @@ __60_load	K	/0
 __48_if2	RS	__39_insere_na_ordem
 __63_printf	K	/0
 		RS	__63_printf
-__64_dump_lista	K	/0
-		LD	__3_primeiro
-		MM	__65_i
-__66_while1	LD	__1_NENHUM
+__65_teste_func	K	/0
+		LV	/29a
+		RS	__65_teste_func
+		RS	__65_teste_func
+__67_x	K	/0
+		LD	__15_const
+		MM	__68_load
+		LV	/0
+		+	__17_p
 		MM	__18_temp
-		LD	__65_i
-		-	__18_temp
-		JZ	__67_while2
-		LD	__69_p
+		LD	__66_x_i
+		MM	__19_temp
+		LV	/c
+		*	__19_temp
+		MM	__7_temp
+		LV	/4
+		*	__7_temp
+		+	__18_temp
+		+	__68_load
+__68_load	K	/0
+		MM	__64_teste_func_var
+		SC	__65_teste_func
+		RS	__67_x
+__69_dump_lista	K	/0
+		LD	__3_primeiro
+		MM	__70_i
+__71_while1	LD	__1_NENHUM
+		MM	__53_temp
+		LD	__70_i
+		-	__53_temp
+		JZ	__72_while2
+		LD	__74_p
 		MM	__61_printf_texto
 		LD	__15_const
-		MM	__70_load
+		MM	__75_load
 		LV	/0
 		+	__17_p
 		MM	__19_temp
-		LD	__65_i
+		LD	__70_i
 		MM	__7_temp
 		LV	/4
 		*	__7_temp
 		+	__19_temp
-		+	__70_load
-__70_load	K	/0
+		+	__75_load
+__75_load	K	/0
 		MM	__62_printf_valor
 		SC	__63_printf
 		LD	__15_const
-		MM	__71_load
+		MM	__76_load
 		LV	/2
 		+	__17_p
-		MM	__53_temp
-		LD	__65_i
 		MM	__18_temp
+		LD	__70_i
+		MM	__53_temp
 		LV	/4
-		*	__18_temp
-		+	__53_temp
-		+	__71_load
-__71_load	K	/0
-		JP	__66_while1
-__67_while2	RS	__64_dump_lista
-__72_main	K	/0
+		*	__53_temp
+		+	__18_temp
+		+	__76_load
+__76_load	K	/0
+		JP	__71_while1
+__72_while2	RS	__69_dump_lista
+__77_main	K	/0
 		SC	__4_inicializa
 		LV	/7
 		MM	__38_insere_na_ordem_valor
@@ -304,10 +327,10 @@ __72_main	K	/0
 		LV	/0
 		MM	__38_insere_na_ordem_valor
 		SC	__39_insere_na_ordem
-		SC	__64_dump_lista
+		SC	__69_dump_lista
 		LV	/0
-		RS	__72_main
-		RS	__72_main
+		RS	__77_main
+		RS	__77_main
 __0_LIVRE	K	/FFFE
 __1_NENHUM	K	/FFFF
 __2_lista	K	/0
@@ -315,7 +338,7 @@ __3_primeiro	K	/0
 __5_i	K	/0
 __7_temp	K	/0
 __11_i	K	/0
-__15_const	K	/0
+__15_const	K	/8000
 __17_p	K	__2_lista
 __18_temp	K	/0
 __19_temp	K	/0
@@ -329,7 +352,9 @@ __50_livre	K	/0
 __53_temp	K	/0
 __61_printf_texto	K	/0
 __62_printf_valor	K	/0
-__65_i	K	/0
-__68_string	K	/2564
+__64_teste_func_var	K	/0
+__66_x_i	K	/0
+__70_i	K	/0
+__73_string	K	/2564
 		K	/6e00
-__69_p	K	__68_string
+__74_p	K	__73_string
