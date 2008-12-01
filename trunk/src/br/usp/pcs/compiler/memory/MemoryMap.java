@@ -22,6 +22,10 @@ public class MemoryMap {
 
 	public String allocVariable(String id, short initial) {
 		String symbol = nextFreeSymbol() + id;
+		return allocGlobalVariable(symbol, initial);
+	}
+
+	public String allocGlobalVariable(String symbol, short initial) {
 		checkSymbol(symbol);
 		map.put(symbol, new SimpleAllocation(initial));
 		return symbol;
@@ -41,13 +45,16 @@ public class MemoryMap {
 	}
 
 	public String allocPointer(String tag, String target) {
-		String symbol = null;
+		String symbol = nextFreeSymbol();
+		if (tag != null) symbol = symbol + tag;
+		return allocGlobalPointer(symbol, target);
+	}
+
+	public String allocGlobalPointer(String symbol, String target) {
 		if (pointers.containsKey(target)) {
 			symbol = pointers.get(target);
 		} else {
 			if (!map.containsKey(target)) throw new IllegalArgumentException("unkown target: " + target);
-			symbol = nextFreeSymbol();
-			if (tag != null) symbol = symbol + tag;
 			checkSymbol(symbol);
 			map.put(symbol, new PointerToSymbol(target));
 			pointers.put(target, symbol);
@@ -96,6 +103,10 @@ public class MemoryMap {
 	public String label(String tag) {
 		String symbol = nextFreeSymbol();
 		if (tag != null) symbol = symbol + tag;
+		return globalLabel(symbol);
+	}
+
+	public String globalLabel(String symbol) {
 		checkSymbol(symbol);
 		map.put(symbol, new Label());
 		return symbol;

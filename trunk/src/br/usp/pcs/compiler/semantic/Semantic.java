@@ -486,7 +486,7 @@ public class Semantic {
 	
 	public SemanticAction registerFunction = new SemanticAction() {
 		public void doAction(Object o) {
-			returnAddress = cu.mm.label(functionId);
+			returnAddress = cu.mm.globalLabel(functionId);
 			scope.registerSymbol(functionId, new Function(returnAddress, returnType, arguments.toArray(new Variable[arguments.size()])));
 			cu.cb.addInstruction(new Instruction(returnAddress, Opcode.CONSTANT, 0));
 			scope = newScope;
@@ -578,12 +578,12 @@ public class Semantic {
 			if (scope.isGlobal() && initializer != null) {
 				if (CalculationUtils.isConstant(initializer)) {
 					// TODO verificar TIPO! tem que ser int!!
-					var = new Variable(cu.mm.allocVariable(id, (short) CalculationUtils.getValue(initializer)), type);
+					var = new Variable(cu.mm.allocGlobalVariable(id, (short) CalculationUtils.getValue(initializer)), type);
 				} else {
 					if (initializer instanceof StringConstant) {
 						// TODO verificar TIPO! tem que ser char[] ou *char[] (?)
 						StringConstant sc = (StringConstant) initializer;
-						var = new Variable(cu.mm.allocPointer(id, sc.getAddress()), type);
+						var = new Variable(cu.mm.allocGlobalPointer(id, sc.getAddress()), type);
 					} else {
 						error("static initializer must be a constant expression. " + initializer.toString());
 					}
