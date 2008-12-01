@@ -14,7 +14,7 @@ import br.usp.pcs.compiler.memory.CompilationUnit;
 import br.usp.pcs.compiler.memory.Instruction;
 import br.usp.pcs.compiler.memory.Instruction.Opcode;
 
-public class LValue implements Expression {
+public class LValue extends BasicCalculation implements Expression {
 	
 	private final Variable var;
 	private Type type;

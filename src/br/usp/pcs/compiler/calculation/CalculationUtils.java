@@ -28,10 +28,15 @@ public class CalculationUtils {
 				throw new IllegalArgumentException("too big constant: " + value);
 			}
 		}
+		
+		public void branchIfZero(CompilationUnit cu, String label) {
+			if (value == 0)
+				cu.cb.addInstruction(new Instruction(Opcode.JP, label));
+		}
 	}
 	
 	// evaluate the address of a label
-	static class MemoryAddress implements Calculation {
+	static class MemoryAddress extends BasicCalculation {
 		private final String address;
 		public MemoryAddress(String address) {
 			this.address = address;
@@ -46,7 +51,7 @@ public class CalculationUtils {
 	}
 	
 	// evaluate the memory contents under a label
-	private static class MemoryReference implements Calculation {
+	private static class MemoryReference extends BasicCalculation {
 		private final String address;
 		public MemoryReference(String address) {
 			this.address = address;
@@ -59,7 +64,7 @@ public class CalculationUtils {
 		}
 	}
 	
-	private abstract static class BinaryOperation implements Calculation {
+	private abstract static class BinaryOperation extends BasicCalculation {
 		protected Calculation op1;
 		protected Calculation op2;
 		
@@ -80,7 +85,7 @@ public class CalculationUtils {
 		protected abstract void doOperation(CodeBuffer cb, String other); 
 	}
 	
-	private abstract static class BinaryOperationWithConstant implements Calculation {
+	private abstract static class BinaryOperationWithConstant extends BasicCalculation {
 		protected int constant;
 		protected Calculation op;
 		
@@ -284,6 +289,10 @@ public class CalculationUtils {
 			cu.cb.addInstruction(new Instruction(Opcode.SUBTRACT, tmp));
 			cu.vm.returnTemporary(tmp);
 		}
+		public void branchIfZero(CompilationUnit cu, String label) {
+			c.evaluate(cu);
+			cu.cb.addInstruction(new Instruction(Opcode.JZ, label));
+		}
 	}
 	
 	public static class NotOperation implements Calculation {
@@ -292,15 +301,20 @@ public class CalculationUtils {
 			this.c = c;
 		}
 		public void evaluate(CompilationUnit cu) {
-			c.evaluate(cu);
 			String l1 = cu.mm.label("not1");
-			cu.cb.addInstruction(new Instruction(Opcode.JZ, l1));
+			c.branchIfZero(cu, l1);
 			constant(0).evaluate(cu);
 			String l2 = cu.mm.label("not2");
 			cu.cb.addInstruction(new Instruction(Opcode.JP, l2));
 			cu.cb.setNextLabel(l1);
 			constant(1).evaluate(cu);
 			cu.cb.setNextLabel(l2);
+		}
+		public void branchIfZero(CompilationUnit cu, String label) {
+			String l1 = cu.mm.label("notc1");
+			c.branchIfZero(cu, l1);
+			cu.cb.addInstruction(new Instruction(Opcode.JP, label));
+			cu.cb.setNextLabel(l1);
 		}
 	}
 	
@@ -362,6 +376,16 @@ public class CalculationUtils {
 			constant(0).evaluate(cu);
 			cu.cb.setNextLabel(label);
 		}
+		
+		public void branchIfZero(CompilationUnit cu, String label) {
+			op1.evaluate(cu);
+			String tmp = cu.vm.takeTemporary();
+			cu.cb.addInstruction(new Instruction(Opcode.STORE, tmp));
+			op2.evaluate(cu);
+			cu.cb.addInstruction(new Instruction(Opcode.SUBTRACT, tmp));
+			cu.vm.returnTemporary(tmp);
+			cu.cb.addInstruction(new Instruction(Opcode.JN, label));
+		}
 	}
 	
 	public static Calculation lessThan(Calculation c1, Calculation c2) {
@@ -384,11 +408,15 @@ public class CalculationUtils {
 		}
 		
 		public void evaluate(CompilationUnit cu) {
-			op1.evaluate(cu);
 			String label = cu.mm.label("and");
-			cu.cb.addInstruction(new Instruction(Opcode.JZ, label));
+			op1.branchIfZero(cu, label);
 			op2.evaluate(cu);
 			cu.cb.setNextLabel(label);
+		}
+		
+		public void branchIfZero(CompilationUnit cu, String label) {
+			op1.branchIfZero(cu, label);
+			op2.branchIfZero(cu, label);
 		}
 	}
 	
@@ -412,13 +440,22 @@ public class CalculationUtils {
 		}
 		
 		public void evaluate(CompilationUnit cu) {
-			op1.evaluate(cu);
 			String l1 = cu.mm.label("or1");
-			cu.cb.addInstruction(new Instruction(Opcode.JZ, l1));
+			op1.branchIfZero(cu, l1);
 			String l2 = cu.mm.label("or2");
 			cu.cb.addInstruction(new Instruction(Opcode.JP, l2));
 			cu.cb.setNextLabel(l1);
 			op2.evaluate(cu);
+			cu.cb.setNextLabel(l2);
+		}
+		
+		public void branchIfZero(CompilationUnit cu, String label) {
+			String l1 = cu.mm.label("orc1");
+			op1.branchIfZero(cu, l1);
+			String l2 = cu.mm.label("orc2");
+			cu.cb.addInstruction(new Instruction(Opcode.JP, l2));
+			cu.cb.setNextLabel(l1);
+			op2.branchIfZero(cu, label);
 			cu.cb.setNextLabel(l2);
 		}
 	}

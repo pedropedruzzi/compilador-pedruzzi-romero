@@ -31,7 +31,8 @@ public class Instruction {
 	private String format(int i) {
 		if (tooBig(i)) throw new IllegalArgumentException("operand is too big: " + i);
 		String str = Integer.toHexString(i);
-		if (str.length() > 4) str = str.substring(str.length() - 4, str.length()).toUpperCase();
+		int len = opcode.isPseudo() ? 4 : 3;
+		if (str.length() > len) str = str.substring(str.length() - len, str.length()).toUpperCase();
 		return '/' + str;
 	}
 	

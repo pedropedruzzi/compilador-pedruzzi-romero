@@ -8,7 +8,7 @@ import br.usp.pcs.compiler.memory.CompilationUnit;
 import br.usp.pcs.compiler.memory.Instruction;
 import br.usp.pcs.compiler.memory.Instruction.Opcode;
 
-public class FunctionCall implements Expression {
+public class FunctionCall extends BasicCalculation implements Expression {
 	
 	private final Function function;
 	private final Variable[] argVars;
