@@ -5,7 +5,6 @@ import br.usp.pcs.compiler.memory.CompilationUnit;
 public interface Calculation {
 	
 	public void evaluate(CompilationUnit cu);
-	
-	//public boolean isConstant();
+	public void branchIfZero(CompilationUnit cu, String label);
 	
 }

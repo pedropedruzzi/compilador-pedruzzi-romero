@@ -1,368 +1,347 @@
-0000 a25e		;			SC	main
+0000 a236		;			SC	main
 0002 c000		;			HM	/0
 0004 0000		;	inicializa	K	/0
 0006 3000		;			LV	/0
-0008 3064		;	__3_for1	LV	/64
-000a 92aa		;			MM	__4_temp
-000c 82a8		;			LD	__2_i
-000e 52aa		;			-	__4_temp
-0010 2014		;			JN	__5_lt
-0012 3000		;			LV	/0
-0014 1022		;	__5_lt	JZ	__6_for2
-0016 82a0		;			LD	LIVRE
-0018 82a8		;			LD	__2_i
-001a 92aa		;			MM	__4_temp
-001c 3001		;			LV	/1
-001e 42aa		;			+	__4_temp
-0020 0008		;			JP	__3_for1
-0022 82a2		;	__6_for2	LD	NENHUM
-0024 b004		;			RS	inicializa
-0026 0000		;	proximo_livre	K	/0
-0028 3000		;			LV	/0
-002a 3064		;	__8_for1	LV	/64
-002c 92aa		;			MM	__4_temp
-002e 82ac		;			LD	__7_i
-0030 52aa		;			-	__4_temp
-0032 2036		;			JN	__9_lt
-0034 3000		;			LV	/0
-0036 106e		;	__9_lt	JZ	__10_for2
-0038 82a0		;			LD	LIVRE
-003a 92aa		;			MM	__4_temp
-003c 82ae		;			LD	__11_const
-003e 9052		;			MM	__12_load
-0040 3002		;			LV	/2
-0042 42b0		;			+	__13_p
-0044 92b2		;			MM	__14_temp
-0046 82ac		;			LD	__7_i
-0048 92b4		;			MM	__15_temp
-004a 3004		;			LV	/4
-004c 62b4		;			*	__15_temp
-004e 42b2		;			+	__14_temp
-0050 4052		;			+	__12_load
-0052 0000		;	__12_load	K	/0
-0054 52aa		;			-	__4_temp
-0056 105c		;			JZ	__16_not1
-0058 3000		;			LV	/0
-005a 005e		;			JP	__17_not2
-005c 3001		;	__16_not1	LV	/1
-005e 1064		;	__17_not2	JZ	__18_if1
-0060 82ac		;			LD	__7_i
-0062 b026		;			RS	proximo_livre
-0064 82ac		;	__18_if1	LD	__7_i
-0066 92b4		;			MM	__15_temp
-0068 3001		;			LV	/1
-006a 42b4		;			+	__15_temp
-006c 002a		;			JP	__8_for1
-006e 82a2		;	__10_for2	LD	NENHUM
-0070 b026		;			RS	proximo_livre
-0072 b026		;			RS	proximo_livre
-0074 0000		;	ultimo	K	/0
-0076 82a6		;			LD	__1_primeiro
-0078 92b6		;			MM	__19_i
-007a 82a2		;			LD	NENHUM
-007c 92b2		;			MM	__14_temp
-007e 82a6		;			LD	__1_primeiro
-0080 52b2		;			-	__14_temp
-0082 1088		;			JZ	__20_not1
-0084 3000		;			LV	/0
-0086 008a		;			JP	__21_not2
-0088 3001		;	__20_not1	LV	/1
-008a 1090		;	__21_not2	JZ	__22_if1
-008c 82a2		;			LD	NENHUM
-008e b074		;			RS	ultimo
-0090 82a2		;	__22_if1	LD	NENHUM
-0092 92aa		;			MM	__4_temp
-0094 82ae		;			LD	__11_const
-0096 90aa		;			MM	__23_load
-0098 3002		;			LV	/2
-009a 42b0		;			+	__13_p
-009c 92b4		;			MM	__15_temp
-009e 82b6		;			LD	__19_i
-00a0 92b2		;			MM	__14_temp
-00a2 3004		;			LV	/4
-00a4 62b2		;			*	__14_temp
-00a6 42b4		;			+	__15_temp
-00a8 40aa		;			+	__23_load
-00aa 0000		;	__23_load	K	/0
-00ac 52aa		;			-	__4_temp
-00ae 10ca		;			JZ	__25_while2
-00b0 82ae		;			LD	__11_const
-00b2 90c6		;			MM	__26_load
-00b4 3002		;			LV	/2
-00b6 42b0		;			+	__13_p
-00b8 92b2		;			MM	__14_temp
-00ba 82b6		;			LD	__19_i
-00bc 92b4		;			MM	__15_temp
-00be 3004		;			LV	/4
-00c0 62b4		;			*	__15_temp
-00c2 42b2		;			+	__14_temp
-00c4 40c6		;			+	__26_load
-00c6 0000		;	__26_load	K	/0
-00c8 0090		;			JP	__22_if1
-00ca 82b6		;	__25_while2	LD	__19_i
-00cc b074		;			RS	ultimo
-00ce b074		;			RS	ultimo
-00d0 0000		;	insere_no_fim	K	/0
-00d2 82a2		;			LD	NENHUM
-00d4 92aa		;			MM	__4_temp
-00d6 82a6		;			LD	__1_primeiro
-00d8 52aa		;			-	__4_temp
-00da 10e0		;			JZ	__29_not1
-00dc 3000		;			LV	/0
-00de 00e2		;			JP	__30_not2
-00e0 3001		;	__29_not1	LV	/1
-00e2 10ec		;	__30_not2	JZ	__31_if1
-00e4 3000		;			LV	/0
-00e6 82b8		;			LD	__28_insere_no_fim_valor
-00e8 82a2		;			LD	NENHUM
-00ea 00f6		;			JP	__32_if2
-00ec a026		;	__31_if1	SC	proximo_livre
-00ee 92ba		;			MM	__33_livre
-00f0 82ba		;			LD	__33_livre
-00f2 82b8		;			LD	__28_insere_no_fim_valor
-00f4 82a2		;			LD	NENHUM
-00f6 b0d0		;	__32_if2	RS	insere_no_fim
-00f8 0000		;	insere_na_ordem	K	/0
-00fa 82a2		;			LD	NENHUM
-00fc 92b4		;			MM	__15_temp
-00fe 82a6		;			LD	__1_primeiro
-0100 52b4		;			-	__15_temp
-0102 1108		;			JZ	__35_not1
-0104 3000		;			LV	/0
-0106 010a		;			JP	__36_not2
-0108 3001		;	__35_not1	LV	/1
-010a 1114		;	__36_not2	JZ	__37_if1
-010c 3000		;			LV	/0
-010e 82bc		;			LD	__34_insere_na_ordem_valor
-0110 82a2		;			LD	NENHUM
-0112 01dc		;			JP	__44_if2
-0114 82ae		;	__37_if1	LD	__11_const
-0116 912a		;			MM	__39_load
-0118 3000		;			LV	/0
-011a 42b0		;			+	__13_p
-011c 92b2		;			MM	__14_temp
-011e 82a6		;			LD	__1_primeiro
-0120 92aa		;			MM	__4_temp
-0122 3004		;			LV	/4
-0124 62aa		;			*	__4_temp
-0126 42b2		;			+	__14_temp
-0128 412a		;			+	__39_load
-012a 0000		;	__39_load	K	/0
-012c 92b4		;			MM	__15_temp
-012e 82bc		;			LD	__34_insere_na_ordem_valor
-0130 52b4		;			-	__15_temp
-0132 2136		;			JN	__41_lt
-0134 3000		;			LV	/0
-0136 1144		;	__41_lt	JZ	__42_if1
-0138 a026		;			SC	proximo_livre
-013a 92be		;			MM	__43_livre
-013c 82bc		;			LD	__34_insere_na_ordem_valor
-013e 82a6		;			LD	__1_primeiro
-0140 82be		;			LD	__43_livre
-0142 01dc		;			JP	__44_if2
-0144 82a6		;	__42_if1	LD	__1_primeiro
-0146 92c0		;			MM	__45_i
-0148 a026		;			SC	proximo_livre
-014a 92c2		;			MM	__46_livre
-014c 82bc		;	__47_while1	LD	__34_insere_na_ordem_valor
-014e 92aa		;			MM	__4_temp
-0150 82a2		;			LD	NENHUM
-0152 92b2		;			MM	__14_temp
-0154 82ae		;			LD	__11_const
-0156 916a		;			MM	__48_load
-0158 3002		;			LV	/2
-015a 42b0		;			+	__13_p
-015c 92b4		;			MM	__15_temp
-015e 82c0		;			LD	__45_i
-0160 92c4		;			MM	__50_temp
-0162 3004		;			LV	/4
-0164 62c4		;			*	__50_temp
-0166 42b4		;			+	__15_temp
-0168 416a		;			+	__48_load
-016a 0000		;	__48_load	K	/0
-016c 52b2		;			-	__14_temp
-016e 119e		;			JZ	__51_and
-0170 82ae		;			LD	__11_const
-0172 919c		;			MM	__52_load
-0174 3000		;			LV	/0
-0176 42b0		;			+	__13_p
-0178 92c4		;			MM	__50_temp
-017a 82ae		;			LD	__11_const
-017c 9190		;			MM	__54_load
-017e 3002		;			LV	/2
-0180 42b0		;			+	__13_p
-0182 92b4		;			MM	__15_temp
-0184 82c0		;			LD	__45_i
-0186 92b2		;			MM	__14_temp
-0188 3004		;			LV	/4
-018a 62b2		;			*	__14_temp
-018c 42b4		;			+	__15_temp
-018e 4190		;			+	__54_load
-0190 0000		;	__54_load	K	/0
-0192 92b2		;			MM	__14_temp
-0194 3004		;			LV	/4
-0196 62b2		;			*	__14_temp
-0198 42c4		;			+	__50_temp
-019a 419c		;			+	__52_load
-019c 0000		;	__52_load	K	/0
-019e 52aa		;	__51_and	-	__4_temp
-01a0 21a4		;			JN	__56_lt
-01a2 3000		;			LV	/0
-01a4 11c0		;	__56_lt	JZ	__57_while2
-01a6 82ae		;			LD	__11_const
-01a8 91bc		;			MM	__58_load
-01aa 3002		;			LV	/2
-01ac 42b0		;			+	__13_p
-01ae 92b4		;			MM	__15_temp
-01b0 82c0		;			LD	__45_i
-01b2 92b2		;			MM	__14_temp
-01b4 3004		;			LV	/4
-01b6 62b2		;			*	__14_temp
-01b8 42b4		;			+	__15_temp
-01ba 41bc		;			+	__58_load
-01bc 0000		;	__58_load	K	/0
-01be 014c		;			JP	__47_while1
-01c0 82bc		;	__57_while2	LD	__34_insere_na_ordem_valor
-01c2 82ae		;			LD	__11_const
-01c4 91d8		;			MM	__60_load
-01c6 3002		;			LV	/2
-01c8 42b0		;			+	__13_p
-01ca 92c4		;			MM	__50_temp
-01cc 82c0		;			LD	__45_i
-01ce 92aa		;			MM	__4_temp
-01d0 3004		;			LV	/4
-01d2 62aa		;			*	__4_temp
-01d4 42c4		;			+	__50_temp
-01d6 41d8		;			+	__60_load
-01d8 0000		;	__60_load	K	/0
-01da 82c2		;			LD	__46_livre
-01dc b0f8		;	__44_if2	RS	insere_na_ordem
-01de 0000		;	printf	K	/0
-01e0 b1de		;			RS	printf
-01e2 0000		;	teste_func	K	/0
-01e4 b1e2		;			RS	teste_func
-01e6 b1e2		;			RS	teste_func
-01e8 0000		;	x	K	/0
-01ea 82ae		;			LD	__11_const
-01ec 9206		;			MM	__67_load
-01ee 3000		;			LV	/0
-01f0 42b0		;			+	__13_p
-01f2 92b2		;			MM	__14_temp
-01f4 82ce		;			LD	__66_x_i
-01f6 92b4		;			MM	__15_temp
-01f8 300c		;			LV	/c
-01fa 62b4		;			*	__15_temp
-01fc 92aa		;			MM	__4_temp
-01fe 3004		;			LV	/4
-0200 62aa		;			*	__4_temp
-0202 42b2		;			+	__14_temp
-0204 4206		;			+	__67_load
-0206 0000		;	__67_load	K	/0
-0208 92cc		;			MM	__65_teste_func_var
-020a a1e2		;			SC	teste_func
-020c b1e8		;			RS	x
-020e 0000		;	dump_lista	K	/0
-0210 82a6		;			LD	__1_primeiro
-0212 92d0		;			MM	__69_i
-0214 82a2		;	__70_while1	LD	NENHUM
-0216 92c4		;			MM	__50_temp
-0218 82d0		;			LD	__69_i
-021a 52c4		;			-	__50_temp
-021c 125c		;			JZ	__71_while2
-021e 82de		;			LD	__73_p
-0220 92c6		;			MM	__62_printf_texto
-0222 82d0		;			LD	__69_i
-0224 92c8		;			MM	__63_printf_valor1
-0226 82ae		;			LD	__11_const
-0228 923c		;			MM	__74_load
-022a 3000		;			LV	/0
-022c 42b0		;			+	__13_p
-022e 92b4		;			MM	__15_temp
-0230 82d0		;			LD	__69_i
-0232 92aa		;			MM	__4_temp
-0234 3004		;			LV	/4
-0236 62aa		;			*	__4_temp
-0238 42b4		;			+	__15_temp
-023a 423c		;			+	__74_load
-023c 0000		;	__74_load	K	/0
-023e 92ca		;			MM	__64_printf_valor2
-0240 a1de		;			SC	printf
-0242 82ae		;			LD	__11_const
-0244 9258		;			MM	__76_load
-0246 3002		;			LV	/2
-0248 42b0		;			+	__13_p
-024a 92b2		;			MM	__14_temp
-024c 82d0		;			LD	__69_i
-024e 92c4		;			MM	__50_temp
-0250 3004		;			LV	/4
-0252 62c4		;			*	__50_temp
-0254 42b2		;			+	__14_temp
-0256 4258		;			+	__76_load
-0258 0000		;	__76_load	K	/0
-025a 0214		;			JP	__70_while1
-025c b20e		;	__71_while2	RS	dump_lista
-025e 0000		;	main	K	/0
-0260 a004		;			SC	inicializa
-0262 3007		;			LV	/7
-0264 92bc		;			MM	__34_insere_na_ordem_valor
-0266 a0f8		;			SC	insere_na_ordem
-0268 3003		;			LV	/3
-026a 92bc		;			MM	__34_insere_na_ordem_valor
-026c a0f8		;			SC	insere_na_ordem
-026e 3008		;			LV	/8
-0270 92bc		;			MM	__34_insere_na_ordem_valor
-0272 a0f8		;			SC	insere_na_ordem
-0274 3002		;			LV	/2
-0276 92bc		;			MM	__34_insere_na_ordem_valor
-0278 a0f8		;			SC	insere_na_ordem
-027a 3001		;			LV	/1
-027c 92bc		;			MM	__34_insere_na_ordem_valor
-027e a0f8		;			SC	insere_na_ordem
-0280 3006		;			LV	/6
-0282 92bc		;			MM	__34_insere_na_ordem_valor
-0284 a0f8		;			SC	insere_na_ordem
-0286 3004		;			LV	/4
-0288 92bc		;			MM	__34_insere_na_ordem_valor
-028a a0f8		;			SC	insere_na_ordem
-028c 3007		;			LV	/7
-028e 92bc		;			MM	__34_insere_na_ordem_valor
-0290 a0f8		;			SC	insere_na_ordem
-0292 3000		;			LV	/0
-0294 92bc		;			MM	__34_insere_na_ordem_valor
-0296 a0f8		;			SC	insere_na_ordem
-0298 a20e		;			SC	dump_lista
-029a 3000		;			LV	/0
-029c b25e		;			RS	main
-029e b25e		;			RS	main
-02a0 fffe		;	LIVRE	K	/FFFE
-02a2 ffff		;	NENHUM	K	/FFFF
-02a4 0000		;	__0_lista	K	/0
-02a6 0000		;	__1_primeiro	K	/0
-02a8 0000		;	__2_i	K	/0
-02aa 0000		;	__4_temp	K	/0
-02ac 0000		;	__7_i	K	/0
-02ae 8000		;	__11_const	K	/8000
-02b0 02a4		;	__13_p	K	__0_lista
-02b2 0000		;	__14_temp	K	/0
-02b4 0000		;	__15_temp	K	/0
-02b6 0000		;	__19_i	K	/0
-02b8 0000		;	__28_insere_no_fim_valor	K	/0
-02ba 0000		;	__33_livre	K	/0
-02bc 0000		;	__34_insere_na_ordem_valor	K	/0
-02be 0000		;	__43_livre	K	/0
-02c0 0000		;	__45_i	K	/0
-02c2 0000		;	__46_livre	K	/0
-02c4 0000		;	__50_temp	K	/0
-02c6 0000		;	__62_printf_texto	K	/0
-02c8 0000		;	__63_printf_valor1	K	/0
-02ca 0000		;	__64_printf_valor2	K	/0
-02cc 0000		;	__65_teste_func_var	K	/0
-02ce 0000		;	__66_x_i	K	/0
-02d0 0000		;	__69_i	K	/0
-02d2 5b25		;	__72_string	K	/5b25
-02d4 645d		;			K	/645d
-02d6 203d		;			K	/203d
-02d8 2025		;			K	/2025
-02da 643b		;			K	/643b
-02dc 0a00		;			K	/a00
-02de 02d2		;	__73_p	K	__72_string
+0008 8280		;	__3_for1	LD	__2_i
+000a 9282		;			MM	__5_temp
+000c 3064		;			LV	/64
+000e 5282		;			-	__5_temp
+0010 201e		;			JN	__4_for2
+0012 8278		;			LD	LIVRE
+0014 8280		;			LD	__2_i
+0016 9282		;			MM	__5_temp
+0018 3001		;			LV	/1
+001a 4282		;			+	__5_temp
+001c 0008		;			JP	__3_for1
+001e 827a		;	__4_for2	LD	NENHUM
+0020 b004		;			RS	inicializa
+0022 0000		;	proximo_livre	K	/0
+0024 3000		;			LV	/0
+0026 8284		;	__7_for1	LD	__6_i
+0028 9282		;			MM	__5_temp
+002a 3064		;			LV	/64
+002c 5282		;			-	__5_temp
+002e 2060		;			JN	__8_for2
+0030 8278		;			LD	LIVRE
+0032 9282		;			MM	__5_temp
+0034 8286		;			LD	__11_const
+0036 904a		;			MM	__12_load
+0038 3002		;			LV	/2
+003a 4288		;			+	__13_p
+003c 928a		;			MM	__14_temp
+003e 8284		;			LD	__6_i
+0040 928c		;			MM	__15_temp
+0042 3004		;			LV	/4
+0044 628c		;			*	__15_temp
+0046 428a		;			+	__14_temp
+0048 404a		;			+	__12_load
+004a 0000		;	__12_load	K	/0
+004c 5282		;			-	__5_temp
+004e 1052		;			JZ	__10_notc1
+0050 0056		;			JP	__9_if1
+0052 8284		;	__10_notc1	LD	__6_i
+0054 b022		;			RS	proximo_livre
+0056 8284		;	__9_if1	LD	__6_i
+0058 928c		;			MM	__15_temp
+005a 3001		;			LV	/1
+005c 428c		;			+	__15_temp
+005e 0026		;			JP	__7_for1
+0060 827a		;	__8_for2	LD	NENHUM
+0062 b022		;			RS	proximo_livre
+0064 b022		;			RS	proximo_livre
+0066 0000		;	ultimo	K	/0
+0068 827e		;			LD	__1_primeiro
+006a 928e		;			MM	__16_i
+006c 827a		;			LD	NENHUM
+006e 928a		;			MM	__14_temp
+0070 827e		;			LD	__1_primeiro
+0072 528a		;			-	__14_temp
+0074 1078		;			JZ	__18_notc1
+0076 007c		;			JP	__17_if1
+0078 827a		;	__18_notc1	LD	NENHUM
+007a b066		;			RS	ultimo
+007c 827a		;	__17_if1	LD	NENHUM
+007e 9282		;			MM	__5_temp
+0080 8286		;			LD	__11_const
+0082 9096		;			MM	__20_load
+0084 3002		;			LV	/2
+0086 4288		;			+	__13_p
+0088 928c		;			MM	__15_temp
+008a 828e		;			LD	__16_i
+008c 928a		;			MM	__14_temp
+008e 3004		;			LV	/4
+0090 628a		;			*	__14_temp
+0092 428c		;			+	__15_temp
+0094 4096		;			+	__20_load
+0096 0000		;	__20_load	K	/0
+0098 5282		;			-	__5_temp
+009a 10b6		;			JZ	__19_while2
+009c 8286		;			LD	__11_const
+009e 90b2		;			MM	__22_load
+00a0 3002		;			LV	/2
+00a2 4288		;			+	__13_p
+00a4 928a		;			MM	__14_temp
+00a6 828e		;			LD	__16_i
+00a8 928c		;			MM	__15_temp
+00aa 3004		;			LV	/4
+00ac 628c		;			*	__15_temp
+00ae 428a		;			+	__14_temp
+00b0 40b2		;			+	__22_load
+00b2 0000		;	__22_load	K	/0
+00b4 007c		;			JP	__17_if1
+00b6 828e		;	__19_while2	LD	__16_i
+00b8 b066		;			RS	ultimo
+00ba b066		;			RS	ultimo
+00bc 0000		;	insere_no_fim	K	/0
+00be 827a		;			LD	NENHUM
+00c0 9282		;			MM	__5_temp
+00c2 827e		;			LD	__1_primeiro
+00c4 5282		;			-	__5_temp
+00c6 10ca		;			JZ	__26_notc1
+00c8 00d2		;			JP	__25_if1
+00ca 3000		;	__26_notc1	LV	/0
+00cc 8290		;			LD	__24_insere_no_fim_valor
+00ce 827a		;			LD	NENHUM
+00d0 00dc		;			JP	__27_if2
+00d2 a022		;	__25_if1	SC	proximo_livre
+00d4 9292		;			MM	__28_livre
+00d6 8292		;			LD	__28_livre
+00d8 8290		;			LD	__24_insere_no_fim_valor
+00da 827a		;			LD	NENHUM
+00dc b0bc		;	__27_if2	RS	insere_no_fim
+00de 0000		;	insere_na_ordem	K	/0
+00e0 827a		;			LD	NENHUM
+00e2 928c		;			MM	__15_temp
+00e4 827e		;			LD	__1_primeiro
+00e6 528c		;			-	__15_temp
+00e8 10ec		;			JZ	__31_notc1
+00ea 00f4		;			JP	__30_if1
+00ec 3000		;	__31_notc1	LV	/0
+00ee 8294		;			LD	__29_insere_na_ordem_valor
+00f0 827a		;			LD	NENHUM
+00f2 01b4		;			JP	__37_if2
+00f4 8294		;	__30_if1	LD	__29_insere_na_ordem_valor
+00f6 928a		;			MM	__14_temp
+00f8 8286		;			LD	__11_const
+00fa 910e		;			MM	__34_load
+00fc 3000		;			LV	/0
+00fe 4288		;			+	__13_p
+0100 9282		;			MM	__5_temp
+0102 827e		;			LD	__1_primeiro
+0104 928c		;			MM	__15_temp
+0106 3004		;			LV	/4
+0108 628c		;			*	__15_temp
+010a 4282		;			+	__5_temp
+010c 410e		;			+	__34_load
+010e 0000		;	__34_load	K	/0
+0110 528a		;			-	__14_temp
+0112 2120		;			JN	__33_if1
+0114 a022		;			SC	proximo_livre
+0116 9296		;			MM	__36_livre
+0118 8294		;			LD	__29_insere_na_ordem_valor
+011a 827e		;			LD	__1_primeiro
+011c 8296		;			LD	__36_livre
+011e 01b4		;			JP	__37_if2
+0120 827e		;	__33_if1	LD	__1_primeiro
+0122 9298		;			MM	__38_i
+0124 a022		;			SC	proximo_livre
+0126 929a		;			MM	__39_livre
+0128 827a		;	__40_while1	LD	NENHUM
+012a 928c		;			MM	__15_temp
+012c 8286		;			LD	__11_const
+012e 9142		;			MM	__43_load
+0130 3002		;			LV	/2
+0132 4288		;			+	__13_p
+0134 9282		;			MM	__5_temp
+0136 8298		;			LD	__38_i
+0138 928a		;			MM	__14_temp
+013a 3004		;			LV	/4
+013c 628a		;			*	__14_temp
+013e 4282		;			+	__5_temp
+0140 4142		;			+	__43_load
+0142 0000		;	__43_load	K	/0
+0144 528c		;			-	__15_temp
+0146 1176		;			JZ	__42_and
+0148 8286		;			LD	__11_const
+014a 9174		;			MM	__45_load
+014c 3000		;			LV	/0
+014e 4288		;			+	__13_p
+0150 928a		;			MM	__14_temp
+0152 8286		;			LD	__11_const
+0154 9168		;			MM	__47_load
+0156 3002		;			LV	/2
+0158 4288		;			+	__13_p
+015a 9282		;			MM	__5_temp
+015c 8298		;			LD	__38_i
+015e 928c		;			MM	__15_temp
+0160 3004		;			LV	/4
+0162 628c		;			*	__15_temp
+0164 4282		;			+	__5_temp
+0166 4168		;			+	__47_load
+0168 0000		;	__47_load	K	/0
+016a 928c		;			MM	__15_temp
+016c 3004		;			LV	/4
+016e 628c		;			*	__15_temp
+0170 428a		;			+	__14_temp
+0172 4174		;			+	__45_load
+0174 0000		;	__45_load	K	/0
+0176 9282		;	__42_and	MM	__5_temp
+0178 8294		;			LD	__29_insere_na_ordem_valor
+017a 5282		;			-	__5_temp
+017c 2198		;			JN	__41_while2
+017e 8286		;			LD	__11_const
+0180 9194		;			MM	__49_load
+0182 3002		;			LV	/2
+0184 4288		;			+	__13_p
+0186 928c		;			MM	__15_temp
+0188 8298		;			LD	__38_i
+018a 928a		;			MM	__14_temp
+018c 3004		;			LV	/4
+018e 628a		;			*	__14_temp
+0190 428c		;			+	__15_temp
+0192 4194		;			+	__49_load
+0194 0000		;	__49_load	K	/0
+0196 0128		;			JP	__40_while1
+0198 8294		;	__41_while2	LD	__29_insere_na_ordem_valor
+019a 8286		;			LD	__11_const
+019c 91b0		;			MM	__51_load
+019e 3002		;			LV	/2
+01a0 4288		;			+	__13_p
+01a2 9282		;			MM	__5_temp
+01a4 8298		;			LD	__38_i
+01a6 928a		;			MM	__14_temp
+01a8 3004		;			LV	/4
+01aa 628a		;			*	__14_temp
+01ac 4282		;			+	__5_temp
+01ae 41b0		;			+	__51_load
+01b0 0000		;	__51_load	K	/0
+01b2 829a		;			LD	__39_livre
+01b4 b0de		;	__37_if2	RS	insere_na_ordem
+01b6 0000		;	printf	K	/0
+01b8 b1b6		;			RS	printf
+01ba 0000		;	teste_func	K	/0
+01bc b1ba		;			RS	teste_func
+01be b1ba		;			RS	teste_func
+01c0 0000		;	x	K	/0
+01c2 8286		;			LD	__11_const
+01c4 91de		;			MM	__58_load
+01c6 3000		;			LV	/0
+01c8 4288		;			+	__13_p
+01ca 928c		;			MM	__15_temp
+01cc 82a4		;			LD	__57_x_i
+01ce 928a		;			MM	__14_temp
+01d0 300c		;			LV	/c
+01d2 628a		;			*	__14_temp
+01d4 9282		;			MM	__5_temp
+01d6 3004		;			LV	/4
+01d8 6282		;			*	__5_temp
+01da 428c		;			+	__15_temp
+01dc 41de		;			+	__58_load
+01de 0000		;	__58_load	K	/0
+01e0 92a2		;			MM	__56_teste_func_var
+01e2 a1ba		;			SC	teste_func
+01e4 b1c0		;			RS	x
+01e6 0000		;	dump_lista	K	/0
+01e8 827e		;			LD	__1_primeiro
+01ea 92a6		;			MM	__60_i
+01ec 827a		;	__61_while1	LD	NENHUM
+01ee 928a		;			MM	__14_temp
+01f0 82a6		;			LD	__60_i
+01f2 528a		;			-	__14_temp
+01f4 1234		;			JZ	__62_while2
+01f6 82b4		;			LD	__64_p
+01f8 929c		;			MM	__53_printf_texto
+01fa 82a6		;			LD	__60_i
+01fc 929e		;			MM	__54_printf_valor1
+01fe 8286		;			LD	__11_const
+0200 9214		;			MM	__65_load
+0202 3000		;			LV	/0
+0204 4288		;			+	__13_p
+0206 9282		;			MM	__5_temp
+0208 82a6		;			LD	__60_i
+020a 928c		;			MM	__15_temp
+020c 3004		;			LV	/4
+020e 628c		;			*	__15_temp
+0210 4282		;			+	__5_temp
+0212 4214		;			+	__65_load
+0214 0000		;	__65_load	K	/0
+0216 92a0		;			MM	__55_printf_valor2
+0218 a1b6		;			SC	printf
+021a 8286		;			LD	__11_const
+021c 9230		;			MM	__67_load
+021e 3002		;			LV	/2
+0220 4288		;			+	__13_p
+0222 928a		;			MM	__14_temp
+0224 82a6		;			LD	__60_i
+0226 928c		;			MM	__15_temp
+0228 3004		;			LV	/4
+022a 628c		;			*	__15_temp
+022c 428a		;			+	__14_temp
+022e 4230		;			+	__67_load
+0230 0000		;	__67_load	K	/0
+0232 01ec		;			JP	__61_while1
+0234 b1e6		;	__62_while2	RS	dump_lista
+0236 0000		;	main	K	/0
+0238 a004		;			SC	inicializa
+023a 3007		;			LV	/7
+023c 9294		;			MM	__29_insere_na_ordem_valor
+023e a0de		;			SC	insere_na_ordem
+0240 3003		;			LV	/3
+0242 9294		;			MM	__29_insere_na_ordem_valor
+0244 a0de		;			SC	insere_na_ordem
+0246 3008		;			LV	/8
+0248 9294		;			MM	__29_insere_na_ordem_valor
+024a a0de		;			SC	insere_na_ordem
+024c 3002		;			LV	/2
+024e 9294		;			MM	__29_insere_na_ordem_valor
+0250 a0de		;			SC	insere_na_ordem
+0252 3001		;			LV	/1
+0254 9294		;			MM	__29_insere_na_ordem_valor
+0256 a0de		;			SC	insere_na_ordem
+0258 3006		;			LV	/6
+025a 9294		;			MM	__29_insere_na_ordem_valor
+025c a0de		;			SC	insere_na_ordem
+025e 3004		;			LV	/4
+0260 9294		;			MM	__29_insere_na_ordem_valor
+0262 a0de		;			SC	insere_na_ordem
+0264 3007		;			LV	/7
+0266 9294		;			MM	__29_insere_na_ordem_valor
+0268 a0de		;			SC	insere_na_ordem
+026a 3000		;			LV	/0
+026c 9294		;			MM	__29_insere_na_ordem_valor
+026e a0de		;			SC	insere_na_ordem
+0270 a1e6		;			SC	dump_lista
+0272 3000		;			LV	/0
+0274 b236		;			RS	main
+0276 b236		;			RS	main
+0278 fffe		;	LIVRE	K	/FFFE
+027a ffff		;	NENHUM	K	/FFFF
+027c 0000		;	__0_lista	K	/0
+027e 0000		;	__1_primeiro	K	/0
+0280 0000		;	__2_i	K	/0
+0282 0000		;	__5_temp	K	/0
+0284 0000		;	__6_i	K	/0
+0286 8000		;	__11_const	K	/8000
+0288 027c		;	__13_p	K	__0_lista
+028a 0000		;	__14_temp	K	/0
+028c 0000		;	__15_temp	K	/0
+028e 0000		;	__16_i	K	/0
+0290 0000		;	__24_insere_no_fim_valor	K	/0
+0292 0000		;	__28_livre	K	/0
+0294 0000		;	__29_insere_na_ordem_valor	K	/0
+0296 0000		;	__36_livre	K	/0
+0298 0000		;	__38_i	K	/0
+029a 0000		;	__39_livre	K	/0
+029c 0000		;	__53_printf_texto	K	/0
+029e 0000		;	__54_printf_valor1	K	/0
+02a0 0000		;	__55_printf_valor2	K	/0
+02a2 0000		;	__56_teste_func_var	K	/0
+02a4 0000		;	__57_x_i	K	/0
+02a6 0000		;	__60_i	K	/0
+02a8 5b25		;	__63_string	K	/5b25
+02aa 645d		;			K	/645d
+02ac 203d		;			K	/203d
+02ae 2025		;			K	/2025
+02b0 643b		;			K	/643b
+02b2 0a00		;			K	/a00
+02b4 02a8		;	__64_p	K	__63_string

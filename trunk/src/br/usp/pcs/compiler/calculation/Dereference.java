@@ -5,7 +5,7 @@ import br.usp.pcs.compiler.memory.CompilationUnit;
 import br.usp.pcs.compiler.memory.Instruction;
 import br.usp.pcs.compiler.memory.Instruction.Opcode;
 
-public class Dereference implements Expression {
+public class Dereference extends BasicCalculation implements Expression {
 
 	private final short LOAD = (short) 0x8000;
 	private final LValue lvalue;

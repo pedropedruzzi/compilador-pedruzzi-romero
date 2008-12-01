@@ -20,5 +20,9 @@ public class TypedCalculation implements Expression {
 	public void evaluate(CompilationUnit cu) {
 		c.evaluate(cu);
 	}
+	
+	public void branchIfZero(CompilationUnit cu, String label) {
+		c.branchIfZero(cu, label);
+	}
 
 }

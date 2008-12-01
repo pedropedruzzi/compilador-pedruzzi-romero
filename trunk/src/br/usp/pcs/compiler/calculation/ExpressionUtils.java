@@ -165,7 +165,7 @@ public class ExpressionUtils {
 		return wrap(CalculationUtils.not(e), e.getType());
 	}
 
-	private static class VoidExpression implements Expression {
+	private static class VoidExpression extends BasicCalculation implements Expression {
 		public Type getType() {
 			return null;
 		}

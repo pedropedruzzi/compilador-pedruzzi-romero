@@ -128,9 +128,8 @@ public class Semantic {
 	public SemanticAction ifE = new SemanticAction() {
 		public void doAction(Object r) {
 			Expression e = (Expression) r;
-			e.evaluate(cu);
 			command.i1 = cu.mm.label("if1");
-			cu.cb.addInstruction(new Instruction(Opcode.JZ, command.i1));
+			e.branchIfZero(cu, command.i1);
 		}
 	};
 	
@@ -173,9 +172,8 @@ public class Semantic {
 				command.l1 = cu.mm.label("for1");
 				cu.cb.setNextLabel(command.l1);
 			}
-			e.evaluate(cu);
 			command.l2 = cu.mm.label("for2");
-			cu.cb.addInstruction(new Instruction(Opcode.JZ, command.l2));
+			e.branchIfZero(cu, command.l2);
 		}
 	};
 	
@@ -204,9 +202,8 @@ public class Semantic {
 				command.l1 = cu.mm.label("while1");
 				cu.cb.setNextLabel(command.l1);
 			}
-			e.evaluate(cu);
 			command.l2 = cu.mm.label("while2");
-			cu.cb.addInstruction(new Instruction(Opcode.JZ, command.l2));
+			e.branchIfZero(cu, command.l2);
 		}
 	};
 	
@@ -421,7 +418,7 @@ public class Semantic {
 				expression.current = ExpressionUtils.logicalOr(expression.previous, expression.current);
 				break;
 			default:
-				// TODO: implementar o resto da galera e deixar a exceção:
+				// TODO: implementar o resto da galera e deixar a exceï¿½ï¿½o:
 				// throw new RuntimeException("unexpected binary operator: " + expression.op2.toString());
 				System.out.println("unexpected binary operator: " + expression.op2.toString());
 				expression.current = ExpressionUtils.add(expression.previous, expression.current);
