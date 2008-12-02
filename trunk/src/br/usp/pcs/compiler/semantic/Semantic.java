@@ -15,7 +15,6 @@ import br.usp.pcs.compiler.CompilationException;
 import br.usp.pcs.compiler.Token;
 import br.usp.pcs.compiler.Token.TokenType;
 import br.usp.pcs.compiler.calculation.CalculationUtils;
-import br.usp.pcs.compiler.calculation.Dereference;
 import br.usp.pcs.compiler.calculation.Expression;
 import br.usp.pcs.compiler.calculation.ExpressionUtils;
 import br.usp.pcs.compiler.calculation.FunctionCall;
@@ -26,7 +25,6 @@ import br.usp.pcs.compiler.entity.Function;
 import br.usp.pcs.compiler.entity.Variable;
 import br.usp.pcs.compiler.entity.type.Array;
 import br.usp.pcs.compiler.entity.type.Field;
-import br.usp.pcs.compiler.entity.type.Pointer;
 import br.usp.pcs.compiler.entity.type.PrimitiveType;
 import br.usp.pcs.compiler.entity.type.Record;
 import br.usp.pcs.compiler.entity.type.SizedArray;
@@ -340,8 +338,7 @@ public class Semantic {
 	
 	public SemanticAction assignment = new SemanticAction() {
 		public void doAction(Object o) {
-			Pointer p = (Pointer) expression.lValue.getType();
-			if (p.getInnerType() != PrimitiveType.intTypeInstance())
+			if (expression.lValue.getType() != PrimitiveType.intTypeInstance())
 				error("can only assign integer lvalues");
 			
 			expression.lValues.add(expression.lValue);
@@ -356,15 +353,6 @@ public class Semantic {
 	};
 	
 	private void processExpressionElement() {
-		if (expression.current instanceof LValue) {
-			LValue lvalue = (LValue) expression.current;
-			if (lvalue.isSimple()) {
-				expression.current = ExpressionUtils.memoryReference(lvalue.getBaseAddress(), lvalue.getInnerType());
-			} else {
-				expression.current = new Dereference((LValue) expression.current);
-			}
-		}
-		
 		while (!expression.op1.isEmpty()) {
 			TokenType op = expression.op1.remove();
 			switch (op) {
@@ -418,10 +406,7 @@ public class Semantic {
 				expression.current = ExpressionUtils.logicalOr(expression.previous, expression.current);
 				break;
 			default:
-				// TODO: implementar o resto da galera e deixar a exceï¿½ï¿½o:
-				// throw new RuntimeException("unexpected binary operator: " + expression.op2.toString());
-				System.out.println("unexpected binary operator: " + expression.op2.toString());
-				expression.current = ExpressionUtils.add(expression.previous, expression.current);
+				throw new RuntimeException("unexpected binary operator: " + expression.op2.toString());
 			}
 		}
 	}
@@ -445,6 +430,11 @@ public class Semantic {
 			expression.op1.clear();
 			expression.op2 = null;
 			if (e == null) e = ExpressionUtils.voidExpression();
+			else {
+				// TODO: tratar atribuições!
+				// verificar tipo, e retornar a atribuições em um Expression novo
+				System.err.println("Implementar atribuição!!");
+			}
 			return e;
 		}
 	};
@@ -574,11 +564,13 @@ public class Semantic {
 			Variable var = null;
 			if (scope.isGlobal() && initializer != null) {
 				if (CalculationUtils.isConstant(initializer)) {
-					// TODO verificar TIPO! tem que ser int!!
+					if (type != PrimitiveType.intTypeInstance())
+						error("this initializer is only allowed for integer variables");
 					var = new Variable(cu.mm.allocGlobalVariable(id, (short) CalculationUtils.getValue(initializer)), type);
 				} else {
 					if (initializer instanceof StringConstant) {
-						// TODO verificar TIPO! tem que ser char[] ou *char[] (?)
+						if (!isCharArray(type))
+							error("wrong var type with a string initializer. expected char[]");
 						StringConstant sc = (StringConstant) initializer;
 						var = new Variable(cu.mm.allocGlobalPointer(id, sc.getAddress()), type);
 					} else {
@@ -586,16 +578,42 @@ public class Semantic {
 					}
 				}
 			} else {
-				String address = cu.mm.allocVariable(id);
-				var = new Variable(address, type);
-				if (initializer != null) {
-					initializer.evaluate(cu);
-					cu.cb.addInstruction(new Instruction(Opcode.STORE, address));
+				// local scope OR no initializer
+				String address;
+				if (type instanceof PrimitiveType) {
+					if (scope.isGlobal()) {
+						address = cu.mm.allocGlobalVariable(id, (short)0);
+					} else {
+						address = cu.mm.allocVariable(id);
+						if (initializer != null) {
+							if (type != PrimitiveType.intTypeInstance())
+								error("this initializer is only allowed for integer variables");
+							initializer.evaluate(cu);
+							cu.cb.addInstruction(new Instruction(Opcode.STORE, address));
+						}
+					}
+				} else {
+					// non-primitive type
+					int size = type.sizeOf();
+					if (scope.isGlobal()) {
+						address = cu.mm.allocPointedAreaGlobal(id, size);
+					} else {
+						address = cu.mm.allocPointedArea(id, size);
+					}
 				}
+				var = new Variable(address, type);
+				
 			}
 			
 			scope.registerSymbol(id, var);
 			initializer = null;
+		}
+
+		private boolean isCharArray(Type type) {
+			if (type instanceof Array) {
+				Array a = (Array) type;
+				return a.getInnerType() == PrimitiveType.charTypeInstance();
+			} else return false;
 		}
 	};
 	

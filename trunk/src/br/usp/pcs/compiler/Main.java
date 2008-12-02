@@ -44,7 +44,7 @@ public class Main {
 	public static void main(String[] args) throws FileNotFoundException {
 		Main main = new Main();
 		System.out.println("Compiling...");
-		boolean ok = main.compile("res/teste2.c", "out/teste2.asm");
+		boolean ok = main.compile("res/teste3.c", "out/teste3.asm");
 		if (ok) {
 			System.out.println("Done!");
 			main.assembly("out/teste2.asm", "out/teste2.obj", "out/teste2.lst");	
