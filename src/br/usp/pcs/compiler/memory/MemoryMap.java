@@ -65,8 +65,12 @@ public class MemoryMap {
 	public String allocPointedArea(String tag, int size) {
 		String symbol = nextFreeSymbol();
 		if (tag != null) symbol = symbol + tag;
-		String symbolData = allocArea(PREFIX_DATA + tag, size);
+		return allocPointedAreaGlobal(symbol, size);
+	}
+
+	public String allocPointedAreaGlobal(String symbol, int size) {
 		checkSymbol(symbol);
+		String symbolData = allocArea(PREFIX_DATA + symbol, size);
 		map.put(symbol, new PointerToSymbol(symbolData));
 		return symbol;
 	}
@@ -83,6 +87,10 @@ public class MemoryMap {
 	public String allocArea(String tag, int size) {
 		String symbol = nextFreeSymbol();
 		if (tag != null) symbol = symbol + tag;
+		return allocAreaGlobal(symbol, size);
+	}
+
+	public String allocAreaGlobal(String symbol, int size) {
 		checkSymbol(symbol);
 		map.put(symbol, new MemoryArea(size));
 		return symbol;
