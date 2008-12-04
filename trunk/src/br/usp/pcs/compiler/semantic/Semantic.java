@@ -16,6 +16,7 @@ import br.usp.pcs.compiler.Token;
 import br.usp.pcs.compiler.Token.TokenType;
 import br.usp.pcs.compiler.calculation.CalculationUtils;
 import br.usp.pcs.compiler.calculation.Expression;
+import br.usp.pcs.compiler.calculation.ExpressionBuilder;
 import br.usp.pcs.compiler.calculation.ExpressionUtils;
 import br.usp.pcs.compiler.calculation.FunctionCall;
 import br.usp.pcs.compiler.calculation.LValue;
@@ -219,7 +220,8 @@ public class Semantic {
 	private class ExpressionContext {
 		private Token idToken;
 		private Expression current;
-		private Expression previous;
+		//private Expression previous;
+		private ExpressionBuilder eb = new ExpressionBuilder();
 		private LValue lValue;
 		private FunctionCall fCall;
 		
@@ -287,12 +289,11 @@ public class Semantic {
 		}
 	};
 	
+	// checkVar + lValueEnd + endE
 	public SubMachineReturnAction checkVarEndE = new SubMachineReturnAction() {
 		public Object returnAction() {
-			String id = (String) expression.idToken.getValue();
-			if (!scope.containsVariable(id)) error(expression.idToken, "not a variable");
-			expression.lValue = new LValue(scope.retrieveVariable(id));
-			expression.current = expression.lValue;
+			checkVar.doAction(null);
+			lValueEnd.doAction(null);
 			return endE.returnAction();
 		}
 	};
@@ -352,70 +353,19 @@ public class Semantic {
 		}
 	};
 	
-	private void processExpressionElement() {
-		while (!expression.op1.isEmpty()) {
-			TokenType op = expression.op1.remove();
-			switch (op) {
-			case LOGICAL_NOT:
-				expression.current = ExpressionUtils.not(expression.current);
-				break;
-			case MINUS:
-				expression.current = ExpressionUtils.inverse(expression.current);
-				break;
-			default:
-				throw new RuntimeException("unexpected unary operator!");
-			}
-		}
-		
-		if (expression.previous != null) {
-			switch (expression.op2) {
-			case PLUS:
-				expression.current = ExpressionUtils.add(expression.previous, expression.current);
-				break;
-			case MINUS:
-				expression.current = ExpressionUtils.subtract(expression.previous, expression.current);
-				break;
-			case MULTIPLICATION:
-				expression.current = ExpressionUtils.multiply(expression.previous, expression.current);
-				break;
-			case DIVISION:
-				expression.current = ExpressionUtils.divide(expression.previous, expression.current);
-				break;
-			case EQUAL:
-				expression.current = ExpressionUtils.equal(expression.previous, expression.current);
-				break;
-			case NOT_EQUAL:
-				expression.current = ExpressionUtils.notEqual(expression.previous, expression.current);
-				break;
-			case LESS:
-				expression.current = ExpressionUtils.lessThan(expression.previous, expression.current);
-				break;
-			case LESS_OR_EQUAL:
-				expression.current = ExpressionUtils.lessThanOrEqualTo(expression.previous, expression.current);
-				break;
-			case GREATER:
-				expression.current = ExpressionUtils.greaterThan(expression.previous, expression.current);
-				break;
-			case GREATER_OR_EQUAL:
-				expression.current = ExpressionUtils.greaterThanOrEqualTo(expression.previous, expression.current);
-				break;
-			case LOGICAL_AND:
-				expression.current = ExpressionUtils.logicalAnd(expression.previous, expression.current);
-				break;
-			case LOGICAL_OR:
-				expression.current = ExpressionUtils.logicalOr(expression.previous, expression.current);
-				break;
-			default:
-				throw new RuntimeException("unexpected binary operator: " + expression.op2.toString());
-			}
-		}
+	private void processExpressionElement(Queue<TokenType> op1, TokenType op2, Expression e) {
+		if (!op1.isEmpty())
+			e = ExpressionUtils.applyUnaryOperators(op1, e);
+		if (expression.op2 == null)
+			expression.eb.firstElement(e);
+		else
+			expression.eb.processElement(op2, e);
 	}
-	
 	
 	public SemanticAction op2 = new SemanticActionWithToken() {
 		public void doAction(Token t) {
-			processExpressionElement();
-			expression.previous = expression.current;
+			processExpressionElement(expression.op1, expression.op2, expression.current);
+			
 			expression.current = null;
 			expression.op2 = t.getType();
 		}
@@ -423,18 +373,18 @@ public class Semantic {
 	
 	public SubMachineReturnAction endE = new SubMachineReturnAction() {
 		public Object returnAction() {
-			processExpressionElement();
-			Expression e = expression.current;
-			expression.previous = null;
+			processExpressionElement(expression.op1, expression.op2, expression.current);
 			expression.current = null;
 			expression.op1.clear();
 			expression.op2 = null;
-			if (e == null) e = ExpressionUtils.voidExpression();
-			else {
-				// TODO: tratar atribuições!
-				// verificar tipo, e retornar a atribuições em um Expression novo
-				System.err.println("Implementar atribuição!!");
-			}
+			
+			Expression e = expression.eb.finalizeExpression();
+			
+			if (!expression.lValues.isEmpty())
+				e = ExpressionUtils.assignment(expression.lValues, e);
+			
+			expression.lValues = new HashSet<LValue>();
+			
 			return e;
 		}
 	};
@@ -511,7 +461,10 @@ public class Semantic {
 	
 	public SemanticAction checkDuplicatedFunction = new SemanticAction() {
 		public void doAction(Object o) {
-			if (scope.containsFunction(id)) error("duplicated function definition: " + id);
+			if (scope.containsFunction(id)) {
+				Function f = scope.retrieveFunction(id);
+				if (f.isDefined()) error("duplicated function definition: " + id);
+			}
 		}
 	};
 	

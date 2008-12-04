@@ -6,6 +6,7 @@ public class Function extends AddressableEntity {
 	
 	private Type returnType;
 	private Variable[] arguments;
+	private boolean isDefined;
 
 	public Function(String address, Type returnType, Variable[] arguments) {
 		super(address);
@@ -19,6 +20,14 @@ public class Function extends AddressableEntity {
 	
 	public Variable[] getArguments() {
 		return arguments;
+	}
+	
+	public void markAsDefined() {
+		isDefined = true;
+	}
+	
+	public boolean isDefined() {
+		return isDefined;
 	}
 	
 }

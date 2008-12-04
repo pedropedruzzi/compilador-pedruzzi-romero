@@ -6,7 +6,7 @@ import br.usp.pcs.compiler.memory.Instruction.Opcode;
 
 public class Dereference extends BasicCalculation {
 
-	private final short LOAD = (short) 0x8000;
+	private static final short LOAD = (short) 0x8000;
 	private final Calculation address;
 
 	public Dereference(Calculation address) {
