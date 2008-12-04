@@ -88,8 +88,8 @@ public class CalculationUtils {
 	}
 	
 	private abstract static class BinaryOperationWithConstant extends BasicCalculation {
-		private final int constant;
-		private final Calculation op;
+		protected final int constant;
+		protected final Calculation op;
 		
 		public BinaryOperationWithConstant(int constant, Calculation op) {
 			this.constant = constant;
@@ -113,7 +113,19 @@ public class CalculationUtils {
 			cu.vm.returnTemporary(tmp);
 		}
 		
-		protected abstract void doOperation(CodeBuffer cb, String other); 
+		protected abstract void doOperation(CodeBuffer cb, String other);
+	}
+	
+	private abstract static class ExchangeableBinaryOperationWithConstant extends BinaryOperationWithConstant {
+		public ExchangeableBinaryOperationWithConstant(int constant, Calculation op) {
+			super(constant, op);
+		}
+
+		public void evaluate(CompilationUnit cu) {
+			op.evaluate(cu);
+			String con = cu.vm.getConstant(constant);
+			doOperation(cu.cb, con);
+		}
 	}
 	
 	private static class AddOperation extends BinaryOperation {
@@ -126,7 +138,7 @@ public class CalculationUtils {
 		}
 	}
 	
-	private static class AddOperationC extends BinaryOperationWithConstant {
+	private static class AddOperationC extends ExchangeableBinaryOperationWithConstant {
 		public AddOperationC(int constant, Calculation op) {
 			super(constant, op);
 		}
@@ -146,7 +158,7 @@ public class CalculationUtils {
 		}
 	}
 	
-	private static class SubtractOperationC extends AddOperationC {
+	private static class SubtractOperationC extends BinaryOperationWithConstant {
 		public SubtractOperationC(int constant, Calculation op) {
 			super(constant, op);
 		}
@@ -166,7 +178,7 @@ public class CalculationUtils {
 		}
 	}
 	
-	private static class MultiplyOperationC extends BinaryOperationWithConstant {
+	private static class MultiplyOperationC extends ExchangeableBinaryOperationWithConstant {
 		public MultiplyOperationC(int constant, Calculation op) {
 			super(constant, op);
 		}
@@ -195,11 +207,10 @@ public class CalculationUtils {
 			int constant = ((Constant) c1).getValue();
 			if (c2 instanceof AddOperationC) {
 				AddOperationC add = (AddOperationC) c2;
-				int newConstant = add.getConstant() + constant;
-				if (add instanceof SubtractOperationC)
-					return new SubtractOperationC(newConstant, add.getOp());
-				else
-					return new AddOperationC(newConstant, add.getOp());
+				return new AddOperationC(add.getConstant() + constant, add.getOp());
+			} else if (c2 instanceof SubtractOperationC){
+				SubtractOperationC sub = (SubtractOperationC) c2;
+				return new SubtractOperationC(sub.getConstant() + constant, sub.getOp());
 			} else {
 				return new AddOperationC(constant, c2);
 			}
@@ -207,11 +218,10 @@ public class CalculationUtils {
 			int constant = ((Constant) c2).getValue();
 			if (c1 instanceof AddOperationC) {
 				AddOperationC add = (AddOperationC) c1;
-				int newConstant = add.getConstant() + constant;
-				if (add instanceof SubtractOperationC)
-					return new SubtractOperationC(newConstant, add.getOp());
-				else
-					return new AddOperationC(newConstant, add.getOp());
+				return new AddOperationC(add.getConstant() + constant, add.getOp());
+			} else if (c1 instanceof SubtractOperationC){
+				SubtractOperationC sub = (SubtractOperationC) c1;
+				return new SubtractOperationC(sub.getConstant() + constant, sub.getOp());
 			} else {
 				return new AddOperationC(constant, c1);
 			}
@@ -229,25 +239,23 @@ public class CalculationUtils {
 			int constant = ((Constant) c1).getValue();
 			if (c2 instanceof AddOperationC) {
 				AddOperationC addOp = (AddOperationC) c2;
-				int newConstant = constant - addOp.getConstant();
-				if (addOp instanceof SubtractOperationC)
-					return new AddOperationC(newConstant, addOp.getOp());
-				else
-					return new SubtractOperationC(newConstant, addOp.getOp());
+				return new SubtractOperationC(constant - addOp.getConstant(), addOp.getOp());
+			} else if (c2 instanceof SubtractOperationC) {
+				SubtractOperationC sub = (SubtractOperationC) c2;
+				return new AddOperationC(constant - sub.getConstant(), sub.getOp());
 			} else {
 				return new SubtractOperationC(constant, c2);
 			}
 		} else if (isConstant(c2)) {
 			int constant = ((Constant) c2).getValue();
 			if (c1 instanceof AddOperationC) {
-				AddOperationC addOp = (AddOperationC) c1;
-				int newConstant = addOp.getConstant() - constant;
-				if (addOp instanceof SubtractOperationC)
-					return new SubtractOperationC(newConstant, addOp.getOp());
-				else
-					return new AddOperationC(newConstant, addOp.getOp());
+				AddOperationC add = (AddOperationC) c1;
+				return new AddOperationC(add.getConstant() - constant, add.getOp());
+			} else if (c1 instanceof SubtractOperationC){
+				SubtractOperationC sub = (SubtractOperationC) c1;
+				return new SubtractOperationC(sub.getConstant() - constant, sub.getOp());
 			} else {
-				return new AddOperationC(-constant, c2);
+				return new AddOperationC(constant, c1);
 			}
 		} else {
 			return new SubtractOperation(c1, c2);

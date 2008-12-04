@@ -10,6 +10,11 @@ void f(type t[] a, type t b, int c) {
 	c = 7;
 }
 
+void teste() {
+	int a, b, c, d, e, f;
+	a = b + c + d * 2 / e * (f - - -e * 4) < 2;
+}
+
 void main() {
 	f(vet, vet[3], vet[9].a);
 }
