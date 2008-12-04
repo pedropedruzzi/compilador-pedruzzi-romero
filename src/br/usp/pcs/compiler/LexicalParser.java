@@ -97,7 +97,7 @@ public class LexicalParser implements Lex {
 							type = TokenType.MULTIPLICATION;
 							break;
 						case '%':
-							type = TokenType.MODULUS;
+							type = TokenType.MODULO;
 							break;
 						case '^':
 							type = TokenType.BITWISE_XOR;

@@ -1,5 +1,7 @@
 package br.usp.pcs.compiler.calculation;
 
+import java.util.Set;
+
 import br.usp.pcs.compiler.memory.CodeBuffer;
 import br.usp.pcs.compiler.memory.CompilationUnit;
 import br.usp.pcs.compiler.memory.Instruction;
@@ -65,8 +67,8 @@ public class CalculationUtils {
 	}
 	
 	private abstract static class BinaryOperation extends BasicCalculation {
-		protected Calculation op1;
-		protected Calculation op2;
+		private final Calculation op1;
+		private final Calculation op2;
 		
 		public BinaryOperation(Calculation op1, Calculation op2) {
 			this.op1 = op1;
@@ -86,8 +88,8 @@ public class CalculationUtils {
 	}
 	
 	private abstract static class BinaryOperationWithConstant extends BasicCalculation {
-		protected int constant;
-		protected Calculation op;
+		private final int constant;
+		private final Calculation op;
 		
 		public BinaryOperationWithConstant(int constant, Calculation op) {
 			this.constant = constant;
@@ -98,8 +100,8 @@ public class CalculationUtils {
 			return constant;
 		}
 		
-		public void setConstant(int constant) {
-			this.constant = constant;
+		public Calculation getOp() {
+			return op;
 		}
 		
 		public void evaluate(CompilationUnit cu) {
@@ -192,16 +194,24 @@ public class CalculationUtils {
 		} else if (isConstant(c1)) {
 			int constant = ((Constant) c1).getValue();
 			if (c2 instanceof AddOperationC) {
-				((AddOperationC) c2).constant += constant;
-				return c2;
+				AddOperationC add = (AddOperationC) c2;
+				int newConstant = add.getConstant() + constant;
+				if (add instanceof SubtractOperationC)
+					return new SubtractOperationC(newConstant, add.getOp());
+				else
+					return new AddOperationC(newConstant, add.getOp());
 			} else {
 				return new AddOperationC(constant, c2);
 			}
 		} else if (isConstant(c2)) {
 			int constant = ((Constant) c2).getValue();
 			if (c1 instanceof AddOperationC) {
-				((AddOperationC) c1).constant += constant;
-				return c1;
+				AddOperationC add = (AddOperationC) c1;
+				int newConstant = add.getConstant() + constant;
+				if (add instanceof SubtractOperationC)
+					return new SubtractOperationC(newConstant, add.getOp());
+				else
+					return new AddOperationC(newConstant, add.getOp());
 			} else {
 				return new AddOperationC(constant, c1);
 			}
@@ -219,19 +229,23 @@ public class CalculationUtils {
 			int constant = ((Constant) c1).getValue();
 			if (c2 instanceof AddOperationC) {
 				AddOperationC addOp = (AddOperationC) c2;
-				int newConstant = constant - ((AddOperationC) c2).constant;
+				int newConstant = constant - addOp.getConstant();
 				if (addOp instanceof SubtractOperationC)
-					return new AddOperationC(newConstant, addOp.op);
+					return new AddOperationC(newConstant, addOp.getOp());
 				else
-					return new SubtractOperationC(newConstant, addOp.op);
+					return new SubtractOperationC(newConstant, addOp.getOp());
 			} else {
 				return new SubtractOperationC(constant, c2);
 			}
 		} else if (isConstant(c2)) {
 			int constant = ((Constant) c2).getValue();
 			if (c1 instanceof AddOperationC) {
-				((AddOperationC) c1).constant -= constant;
-				return c1;
+				AddOperationC addOp = (AddOperationC) c1;
+				int newConstant = addOp.getConstant() - constant;
+				if (addOp instanceof SubtractOperationC)
+					return new SubtractOperationC(newConstant, addOp.getOp());
+				else
+					return new AddOperationC(newConstant, addOp.getOp());
 			} else {
 				return new AddOperationC(-constant, c2);
 			}
@@ -248,16 +262,16 @@ public class CalculationUtils {
 		} else if (isConstant(c1)) {
 			int constant = ((Constant) c1).getValue();
 			if (c2 instanceof MultiplyOperationC) {
-				((MultiplyOperationC) c2).constant *= constant;
-				return c2;
+				MultiplyOperationC mult = (MultiplyOperationC) c2;
+				return new MultiplyOperationC(mult.getConstant() * constant, mult.getOp());
 			} else {
 				return new MultiplyOperationC(constant, c2);
 			}
 		} else if (isConstant(c2)) {
 			int constant = ((Constant) c2).getValue();
 			if (c1 instanceof MultiplyOperationC) {
-				((MultiplyOperationC) c1).constant *= constant;
-				return c1;
+				MultiplyOperationC mult = (MultiplyOperationC) c1;
+				return new MultiplyOperationC(mult.getConstant() * constant, mult.getOp());
 			} else {
 				return new MultiplyOperationC(constant, c1);
 			}
@@ -273,6 +287,16 @@ public class CalculationUtils {
 			return new Constant(const1.getValue() / const2.getValue());
 		} else{
 			return new DivideOperation(c1, c2);
+		}
+	}
+
+	public static Calculation modulo(Calculation c1, Calculation c2) {
+		if (isConstant(c1) && isConstant(c2)) {
+			Constant const1 = (Constant) c1;
+			Constant const2 = (Constant) c2;
+			return new Constant(const1.getValue() % const2.getValue());
+		} else{
+			return subtract(c1, multiply(c2, divide(c1, c2)));
 		}
 	}
 	
@@ -356,8 +380,8 @@ public class CalculationUtils {
 	}
 	
 	private static class LessThanOperation implements Calculation {
-		protected Calculation op1;
-		protected Calculation op2;
+		private final Calculation op1;
+		private final Calculation op2;
 		
 		public LessThanOperation(Calculation op1, Calculation op2) {
 			this.op1 = op1;
@@ -399,8 +423,8 @@ public class CalculationUtils {
 	}
 	
 	private static class LogicalAndOperation implements Calculation {
-		protected Calculation op1;
-		protected Calculation op2;
+		private final Calculation op1;
+		private final Calculation op2;
 		
 		public LogicalAndOperation(Calculation op1, Calculation op2) {
 			this.op1 = op1;
@@ -468,6 +492,29 @@ public class CalculationUtils {
 		} else {
 			return new LogicalOrOperation(c1, c2);
 		}
+	}
+	
+	private static class AssignmentOperation extends BasicCalculation {
+		private final Set<LValue> lvalues;
+		private final Calculation c;
+
+		public AssignmentOperation(Set<LValue> lvalues, Calculation c) {
+			this.lvalues = lvalues;
+			this.c = c;
+		}
+		
+		public void evaluate(CompilationUnit cu) {
+			// calcula o valor da expressao
+			c.evaluate(cu);
+			
+			for (LValue lvalue : lvalues) {
+				lvalue.assignValue(cu);
+			}
+		}
+	}
+
+	public static Calculation assignment(Set<LValue> lvalues, Calculation c) {
+		return new AssignmentOperation(lvalues, c);
 	}
 
 }

@@ -16,6 +16,10 @@ public class TypedCalculation implements Expression {
 	public Type getType() {
 		return type;
 	}
+	
+	public Calculation getCalculation() {
+		return c;
+	}
 
 	public void evaluate(CompilationUnit cu) {
 		c.evaluate(cu);

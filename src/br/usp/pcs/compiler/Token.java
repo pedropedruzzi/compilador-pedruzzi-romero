@@ -33,7 +33,7 @@ public class Token {
 		LESS_OR_EQUAL("<="),
 		MINUS("-"), PLUS("+"), BITWISE_AND("&"), BITWISE_OR("|"),
 		LOGICAL_NOT("!"), ASSIGNMENT("="), MULTIPLICATION("*"), SHIFT_LEFT("<<"), LESS("<"), SHIFT_RIGHT(">>"),
-		GREATER(">"), BITWISE_XOR("^"), MODULUS("%"), DIVISION("/"), BRACE_OPEN("{"), BRACE_CLOSE("}"),
+		GREATER(">"), BITWISE_XOR("^"), MODULO("%"), DIVISION("/"), BRACE_OPEN("{"), BRACE_CLOSE("}"),
 		SUBSCRIPT_OPEN("["), SUBSCRIPT_CLOSE("]"), PARENTHESES_OPEN("("), PARENTHESES_CLOSE(")"),
 		COMMA(","), SEMICOLON(";"), TILDE("~"), DOT("."),
 		

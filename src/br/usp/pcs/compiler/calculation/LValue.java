@@ -26,7 +26,8 @@ import br.usp.pcs.compiler.memory.Instruction.Opcode;
  */
 public class LValue extends BasicCalculation implements Expression {
 
-	private final short LOAD = (short) 0x8000;
+	private static final short LOAD = (short) 0x8000;
+	private static final short STORE = (short) 0x9000;
 	private final Variable var;
 	private Type type;
 	private int offset;
@@ -76,15 +77,17 @@ public class LValue extends BasicCalculation implements Expression {
 	 */
 	public void evaluate(CompilationUnit cu) {
 		if (isPrimitiveVariable()) {
+			// variavel primitiva
 			cu.cb.addInstruction(new Instruction(Opcode.LOAD, var.getAddress()));
 		} else if (type instanceof PrimitiveType) {
-			CalculationUtils.constant(LOAD).evaluate(cu);
+			// lvalue primitivo
+			evaluateAddress(cu);
+			cu.cb.addInstruction(new Instruction(Opcode.ADD, cu.vm.getConstant(LOAD)));
 			String loadI = cu.mm.label("load");
 			cu.cb.addInstruction(new Instruction(Opcode.STORE, loadI));
-			evaluateAddress(cu);
-			cu.cb.addInstruction(new Instruction(Opcode.ADD, loadI));
 			cu.cb.addInstruction(new Instruction(loadI, Opcode.CONSTANT, 0));
 		} else {
+			// lvalue nao-primitivo
 			evaluateAddress(cu);
 		}
 	}
@@ -96,13 +99,39 @@ public class LValue extends BasicCalculation implements Expression {
 		} else {
 			cu.cb.addInstruction(new Instruction(Opcode.LOAD, var.getAddress()));
 		}
-		String tmp = cu.vm.takeTemporary();
+		String tmp = null;
 		for (Calculation c : products) {
+			if (tmp == null) tmp = cu.vm.takeTemporary();
 			cu.cb.addInstruction(new Instruction(Opcode.STORE, tmp));
 			c.evaluate(cu);
 			cu.cb.addInstruction(new Instruction(Opcode.ADD, tmp));
 		}
-		cu.vm.returnTemporary(tmp);
+		if (tmp != null) cu.vm.returnTemporary(tmp);
+	}
+	
+	// assign the value fn the accumulator to this lvalue
+	// must leave the value on the accumulator on return
+	public void assignValue(CompilationUnit cu) {
+		if (isPrimitiveVariable()) {
+			// variavel primitiva
+			cu.cb.addInstruction(new Instruction(Opcode.STORE, var.getAddress()));
+		} else if (type instanceof PrimitiveType) {
+			// salva o valor em variavel temporaria
+			String tmp1 = cu.vm.takeTemporary();
+			cu.cb.addInstruction(new Instruction(Opcode.STORE, tmp1));
+			// monta a instrucao de store (MM)
+			evaluateAddress(cu);
+			cu.cb.addInstruction(new Instruction(Opcode.ADD, cu.vm.getConstant(STORE)));
+			String storeI = cu.mm.label("store");
+			cu.cb.addInstruction(new Instruction(Opcode.STORE, storeI));
+			// le o valor a ser atribuido
+			cu.cb.addInstruction(new Instruction(Opcode.LOAD, tmp1));
+			cu.vm.returnTemporary(tmp1);
+			// placeholder para instrucao
+			cu.cb.addInstruction(new Instruction(storeI, Opcode.CONSTANT, 0));
+		} else {
+			throw new CompilationException("can't assign to a non-primitive lvalue!");
+		}
 	}
 
 }
