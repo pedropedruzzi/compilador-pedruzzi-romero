@@ -47,7 +47,7 @@ public class Main {
 		boolean ok = main.compile("res/teste3.c", "out/teste3.asm");
 		if (ok) {
 			System.out.println("Done!");
-			main.assembly("out/teste2.asm", "out/teste2.obj", "out/teste2.lst");	
+			main.assembly("out/teste3.asm", "out/teste3.obj", "out/teste3.lst");	
 		}
 		else {
 			System.out.println("Compilation not ok!");
