@@ -42,18 +42,30 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {
+		if (args.length != 1) {
+			showUsage();
+			return;
+		}
+		String input = args[0];
+		String asm = input + ".asm";
+		String obj = input + ".obj";
+		String lst = input + ".lst";
 		Main main = new Main();
 		System.out.println("Compiling...");
-		boolean ok = main.compile("res/teste3.c", "out/teste3.asm");
+		boolean ok = main.compile(input, asm);
 		if (ok) {
 			System.out.println("Done!");
-			main.assembly("out/teste3.asm", "out/teste3.obj", "out/teste3.lst");	
+			main.assembly(asm, obj, lst);	
 		}
 		else {
 			System.out.println("Compilation not ok!");
 		}
 	}
 	
+	private static void showUsage() {
+		System.out.println("Usage: prcc <inputfile>");
+	}
+
 	private boolean compile(String inputfile, String outputfile) throws FileNotFoundException {
 		Lex lex = new LexicalParser(inputfile);
 		//while (lex.hasToken()) System.out.println(lex.nextToken());
