@@ -87,6 +87,25 @@ public class CalculationUtils {
 		protected abstract void doOperation(CodeBuffer cb, String other); 
 	}
 	
+	// TODO utilizar esta classe ou na BinaryOperationWithConstant e na BinaryOperation
+	// perceber quando o operador for MemoryReference e otimizar.
+	private abstract static class BinaryOperationWithVariable extends BasicCalculation {
+		private final Calculation op1;
+		private final String op2;
+
+		public BinaryOperationWithVariable(Calculation op1, String op2) {
+			this.op1 = op1;
+			this.op2 = op2;
+		}
+		
+		public void evaluate(CompilationUnit cu) {
+			op1.evaluate(cu);
+			doOperation(cu.cb, op2);
+		}
+		
+		protected abstract void doOperation(CodeBuffer cb, String other);
+	}
+	
 	private abstract static class BinaryOperationWithConstant extends BasicCalculation {
 		protected final int constant;
 		protected final Calculation op;
